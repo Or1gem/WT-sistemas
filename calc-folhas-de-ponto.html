@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="icon/icone.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>WT-Calculadora Profissional de Ponto</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0f172a;
+            --secondary: #1e293b;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --warning: #f59e0b;
+            --bg: #f4f7fb;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Poppins', sans-serif; background: var(--bg); padding: 18px; color: #0f172a; }
+        
+        .container { max-width: 1400px; margin: auto; }
+        
+        /* AJUSTE NO TOPO PARA FLEXBOX */
+        .topo { 
+            background: linear-gradient(135deg, var(--primary), var(--secondary)); 
+            color: white; 
+            padding: 20px; 
+            border-radius: 18px; 
+            margin-bottom: 18px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            
+            display: flex; /* Alinha em linha */
+            justify-content: space-between; /* Texto de um lado, imagem do outro */
+            align-items: center; /* Centraliza verticalmente */
+            text-align: center; /* Alinha o texto à esquerda */
+        }
+
+        .topo-texto h1 { font-size: 28px; letter-spacing: 1px; }
+        .topo-texto p { margin-top: 5px; opacity: 0.8; font-weight: 300; }
+
+        /* AJUSTE NA IMAGEM */
+        .topo #icone { 
+            border-radius: 75px;
+            width: 135px; /* Tamanho fixo para ficar proporcional */
+            height: auto;
+            object-fit: cover;
+            margin: 10px; /* Espaço em volta */
+            box-shadow: 0 4px 10px rgba(1,0,0,0.0);
+        }
+
+        .card { 
+            background: white; padding: 20px; border-radius: 18px; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05); overflow-x: auto; 
+        }
+
+        table { width: 100%; border-collapse: collapse; min-width: 1100px; }
+        th { 
+            background: var(--primary); color: white; padding: 1px; 
+            font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+            position: sticky; top: 0;
+        }
+        td { border-bottom: 1px solid #eee; padding: 12px 8px; text-align: center; font-size: 14px; }
+        
+        tr:hover { background-color: #f8fafc; }
+        
+        input[type="time"] { 
+            width: 105px; padding: 6px; border-radius: 8px; 
+            border: 1px solid #cbd5e1; font-family: inherit; outline-color: var(--success);
+        }
+        
+        input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary); }
+
+.btn-calcular { 
+    background: var(--success); 
+    color: white; 
+    border: none; 
+    padding: 16px 40px; 
+    border-radius: 12px; 
+    cursor: pointer; 
+    font-size: 16px; 
+    font-weight: 600; 
+    transition: 0.3s; 
+}
+
+.btn-calcular:hover {
+    background: #15803d;
+    transform: translateY(-2px);
+    
+    
+    
+}
+
+
+.btn-limpar { 
+    background: #b91c1c; 
+    color: white; 
+    border: none; 
+    padding: 16px 40px; 
+    border-radius: 12px; 
+    cursor: pointer; 
+    font-size: 16px; 
+    font-weight: 600; 
+    transition: 0.3s; 
+    
+}
+
+.btn-limpar:hover { 
+    background: #b91c1c; 
+    transform: translateY(-2px); 
+}
+
+.botoes {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+        .extra { color: var(--success); font-weight: 700; }
+        .normal { color: #4c71e0; font-weight: 500; }
+        .status-tag { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+        .bg-extra { background: #dcfce7; color: #166534; }
+        .bg-normal { background: #4cc8e0; color: #4c71e0; }
+        .bg-feriado { background: #dcfce7; color: #166534; }
+        
+        .feriado-row { background: #fffbeb !important; }
+        .sabado-row { background: #f0f9ff !important; }
+
+        .total-box { 
+            margin-top: 30px; display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; 
+        }
+        .box { 
+            background: white; padding: 25px; border-radius: 15px; 
+            border-left: 6px solid var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        .box h2 { font-size: 14px; color: #64748b; text-transform: uppercase; margin-bottom: 10px; }
+        .box p { font-size: 28px; font-weight: 700; color: var(--primary); }
+
+        @media (max-width: 768px) {
+            .topo { flex-direction: column; text-align: center; }
+            .topo #icone { margin-top: 20px; }
+            .topo h1 { font-size: 22px; }
+            body { padding: 10px; }
+        }
+        
+        
+.btn-print {
+  background: #111827;
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.btn-print:hover {
+  background: #374151;
+}
+
+ 
+    
+    /* MENU HAMBURGUER */
+
+.menu-btn{
+    font-size:32px;
+    cursor:pointer;
+    color:white;
+    user-select:none;
+    transition:0.3s;
+    
+}
+
+.menu-btn:hover{
+    transform:scale(1.1);
+}
+
+.menu{
+    position:fixed;
+    top:2;
+    left:-260px;
+    width:220px;
+    height:30%;
+    background:#111827;
+    padding-top:90px;
+    transition:0.4s;
+    z-index:999;
+    box-shadow:5px 0 20px rgba(0,0,0,0.2);
+    border-radius:12px;
+}
+
+.menu a{
+    display:block;
+    color:white;
+    text-decoration:none;
+    padding:18px 25px;
+    font-size:17px;
+    transition:0.3s;
+    border-bottom:1px solid rgba(255,255,255,0.05);
+}
+
+.menu a:hover{
+    background:#1f2937;
+    padding-left:35px;
+}
+
+.menu.ativo{
+    left:0;
+}
+    
+    
+   .logo {
+       
+       border-radius: 12px;
+            width: 120px; /* Tamanho fixo para ficar proporcional */
+            height: auto;
+            object-fit: cover;
+            margin: 50px; /* Espaço em volta */
+            box-shadow: 0 4px 10px rgba(1,0,0,0.0);
+        }
+       
+    
+body.dark {
+  background: #0f172a;
+  color: white;
+}
+
+body.dark .card {
+  background: #1e293b;
+  color: white;
+}
+
+body.dark .box {
+  background: #1e293b;
+  color: white;
+}
+
+body.dark table {
+  color: white;
+}
+
+body.dark td {
+  border-bottom: 1px solid #334155;
+}
+
+body.dark input {
+  background: #0f172a;
+  color: white;
+  border: 1px solid #334155;
+}
+    
+    
+    </style>
+</head>
+
+<body>
+<div class="menu" id="menu" onclick="abrirMenu()">
+    <a href="#" onclick="window.print()">IMPRIMIR 🖨️</a>
+    <a href="javascript:void(0)" onclick="toggle()">Modo escuro</a>
+    <a href="wt-sistemas.html">Desenvolvedor</a>
+    <img src="icon/logo.png" class="logo">
+    
+</div>
+    
+    
+<div class="container">
+    <div class="topo">
+        
+        
+        
+        
+        <div class="topo-texto">
+            
+            <h1> Sistema de Cálculo </br>de Ponto Individual </h1>
+            
+            
+        </div>
+        <img src="icon/icone.jpg" alt="Logo" class="menu-btn" onclick="abrirMenu()" id="icone">
+    </div>
+
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Dia</th>
+                    <th>Entrada</th>
+                    <th>Inicio Intervalo</th>
+                    <th>Fim Intervalo</th>
+                    <th>Saída</th>
+                    <th>Sábado</th>
+                    <th>Feriado</th>
+                    <th>Total Horas</th>
+                    <th>Hora-Extra</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="tabelaBody">
+                <!-- JS gerará os dias aqui -->
+            </tbody>
+        </table>
+        <div class="botoes">
+        <button class="btn-calcular" onclick="calcularFolha()">Calcular Resultados</button>
+        
+        <button class="btn-limpar" onclick="limparFormulario()">Limpar Campos</button>
+        </div>
+        <div class="total-box">
+            <div class="box">
+                <h2>Total Horas (50%)</h2>
+                <p id="totalExtras">00:00</p>
+            </div>
+            <div class="box">
+                <h2>Total Horas (100%)</h2>
+                <p id="totalFeriado">00:00</p>
+            </div>
+            
+    </div>
+</div>
+<script>
+    
+    function toggle() {
+  document.body.classList.toggle("dark");
+
+  if (document.body.classList.contains("dark")) {
+    localStorage.setItem("tema", "dark");
+  } else {
+    localStorage.setItem("tema", "light");
+  }
+}
+
+window.onload = function () {
+  if (localStorage.getItem("tema") === "dark") {
+    document.body.classList.add("dark");
+  }
+};
+    
+    function abrirMenu(){
+    document.getElementById("menu").classList.toggle("ativo");
+}
+    
+    
+    
+    // ... Seu JavaScript permanece o mesmo ...
+    const MINUTOS_DIA_SEMANA = 480;
+    const MINUTOS_SABADO = 240;
+    const TOLERANCIA_MINUTOS = 15;
+
+    const tabela = document.getElementById("tabelaBody");
+    for(let i = 1; i <= 31; i++){
+        tabela.innerHTML += `
+            <tr id="dia-${i}">
+                <td><strong>${String(i).padStart(2, '0')}</strong></td>
+                <td><input type="time" class="entrada"></td>
+                <td><input type="time" class="saidaAlmoco"></td>
+                <td><input type="time" class="voltaAlmoco"></td>
+                <td><input type="time" class="saida"></td>
+                <td><input type="checkbox" class="isSabado" onchange="marcarLinha(${i})"></td>
+                <td><input type="checkbox" class="feriado" onchange="marcarLinha(${i})"></td>
+                <td class="total-dia">00:00</td>
+                <td class="extra-dia">00:00</td>
+                <td class="status-dia">-</td>
+            </tr>
+        `;
+    }
+
+    function hToM(horario) {
+        if (!horario) return null;
+        const [h, m] = horario.split(':').map(Number);
+        return (h * 60) + m;
+    }
+
+    function mToH(minutos) {
+        const h = Math.floor(Math.abs(minutos) / 60);
+        const m = Math.abs(minutos) % 60;
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    }
+
+    function calcularDiferenca(inicio, fim) {
+        if (inicio === null || fim === null) return 0;
+        let diff = fim - inicio;
+        if (diff < 0) diff += 1440;
+        return diff;
+    }
+
+    function limparFormulario() {
+    const confirmar = confirm("Tem certeza que deseja limpar todos os dados?");
+    if (!confirmar) return;
+
+    const linhas = document.querySelectorAll("#tabelaBody tr");
+
+    linhas.forEach(linha => {
+        // limpa inputs de horário
+        linha.querySelectorAll("input[type='time']").forEach(input => {
+            input.value = "";
+        });
+
+        // desmarca checkboxes
+        linha.querySelectorAll("input[type='checkbox']").forEach(cb => {
+            cb.checked = false;
+        });
+
+        // reseta resultados da linha
+        linha.querySelector(".total-dia").innerText = "00:00";
+        linha.querySelector(".extra-dia").innerText = "00:00";
+        linha.querySelector(".status-dia").innerText = "-";
+
+        // remove cores visuais
+        linha.classList.remove("feriado-row", "sabado-row");
+    });
+
+    // reseta totais gerais
+    document.getElementById("totalExtras").innerText = "00:00";
+    document.getElementById("totalFeriado").innerText = "00:00";
+    document.getElementById("totalGeral").innerText = "00:00";
+}
+
+    function marcarLinha(index) {
+        const linha = document.getElementById(`dia-${index}`);
+        const isSab = linha.querySelector(".isSabado").checked;
+        const isFer = linha.querySelector(".feriado").checked;
+        linha.classList.remove("feriado-row", "sabado-row");
+        if (isFer) linha.classList.add("feriado-row");
+        else if (isSab) linha.classList.add("sabado-row");
+    }
+
+    function calcularFolha() {
+        const linhas = tabela.querySelectorAll("tr");
+        let somaExtras = 0;
+        let somaFeriados = 0;
+        let somaTotalGeral = 0;
+
+        linhas.forEach(linha => {
+            const v = (classe) => linha.querySelector(classe).value;
+            const c = (classe) => linha.querySelector(classe).checked;
+
+            const tEntrada = hToM(v(".entrada"));
+            const tSaidaAlm = hToM(v(".saidaAlmoco"));
+            const tVoltaAlm = hToM(v(".voltaAlmoco"));
+            const tSaidaFin = hToM(v(".saida"));
+            
+            const isSabado = c(".isSabado");
+            const isFeriado = c(".feriado");
+
+            const displayTotal = linha.querySelector(".total-dia");
+            const displayExtra = linha.querySelector(".extra-dia");
+            const displayStatus = linha.querySelector(".status-dia");
+
+            if (tEntrada !== null && tSaidaFin !== null) {
+                let totalMinutos = 0;
+                if (tSaidaAlm !== null && tVoltaAlm !== null) {
+                    totalMinutos = calcularDiferenca(tEntrada, tSaidaAlm) + calcularDiferenca(tVoltaAlm, tSaidaFin);
+                } else {
+                    totalMinutos = calcularDiferenca(tEntrada, tSaidaFin);
+                }
+
+                somaTotalGeral += totalMinutos;
+                displayTotal.innerText = mToH(totalMinutos);
+
+                const jornadaObrigatoria = isFeriado ? 0 : (isSabado ? MINUTOS_SABADO : MINUTOS_DIA_SEMANA);
+                
+                if (isFeriado) {
+                    somaFeriados += totalMinutos;
+                    displayExtra.innerText = mToH(totalMinutos);
+                    displayExtra.className = "extra-dia extra";
+                    displayStatus.innerHTML = `<span class="status-tag bg-feriado">hora 100%</span>`;
+                } else {
+                    if (totalMinutos > (jornadaObrigatoria + TOLERANCIA_MINUTOS)) {
+                        const extra = totalMinutos - jornadaObrigatoria;
+                        somaExtras += extra;
+                        displayExtra.innerText = mToH(extra);
+                        displayExtra.className = "extra-dia extra";
+                        displayStatus.innerHTML = `<span class="status-tag bg-extra">Hora Extra</span>`;
+                    } else {
+                        displayExtra.innerText = "00:00";
+                        displayExtra.className = "extra-dia normal";
+                        displayStatus.innerHTML = `<span class="status-tag bg-normal">Normal</span>`;
+                    }
+                }
+            }
+        });
+
+        document.getElementById("totalExtras").innerText = mToH(somaExtras);
+        document.getElementById("totalFeriado").innerText = mToH(somaFeriados);
+        document.getElementById("totalGeral").innerText = mToH(somaTotalGeral);
+    }
+</script>
+
+</body>
+</html>
+
