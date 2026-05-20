@@ -1,0 +1,587 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="icon/icone.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>GM - Escala 12x36 Profissional</title>
+   
+    <style>
+        :root {
+            --primary: #0f172a;
+            --secondary: #1e293b;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --warning: #f59e0b;
+            --bg: #f4f7fb;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Poppins', sans-serif; background: var(--bg); padding: 18px; color: #0f172a; }
+        
+        .container { max-width: 1400px; margin: auto; }
+        
+        .topo { 
+            background: linear-gradient(135deg, var(--primary), var(--secondary)); 
+            color: white; 
+            padding: 20px; 
+            border-radius: 18px; 
+            margin-bottom: 18px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .topo-texto h1 { font-size: 28px; letter-spacing: 1px; }
+        .topo-texto p { margin-top: 5px; opacity: 0.8; font-weight: 300; }
+
+        .topo #icone { 
+            border-radius: 75px;
+            width: 135px;
+            height: auto;
+            object-fit: cover;
+            margin: 10px;
+            box-shadow: 0 4px 10px rgba(1,0,0,0.0);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .topo #icone:hover { transform: scale(1.05); }
+
+        .card { 
+            background: white; padding: 20px; border-radius: 18px; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05); overflow-x: auto; 
+        }
+
+        table { width: 100%; border-collapse: collapse; min-width: 1200px; }
+        th { 
+            background: var(--primary); color: white; padding: 14px 8px; 
+            font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+            position: sticky; top: 0;
+        }
+        td { border-bottom: 1px solid #eee; padding: 12px 6px; text-align: center; font-size: 14px; }
+        
+        tr:hover { background-color: #f8fafc; }
+        
+        input[type="time"] { 
+            width: 105px; padding: 6px; border-radius: 8px; 
+            border: 1px solid #cbd5e1; font-family: inherit; outline-color: var(--success);
+        }
+        
+        input[type="checkbox"] {
+            width: 18px; height: 18px; cursor: pointer; accent-color: var(--success);
+        }
+
+        input:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+
+        .btn-calcular { 
+            background: var(--success); 
+            color: white; 
+            border: none; 
+            padding: 16px 40px; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            font-weight: 600; 
+            transition: 0.3s; 
+        }
+        .btn-calcular:hover {
+            background: #15803d;
+            transform: translateY(-2px);
+        }
+
+        .btn-limpar { 
+            background: #b91c1c; 
+            color: white; 
+            border: none; 
+            padding: 16px 40px; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            font-weight: 600; 
+            transition: 0.3s; 
+        }
+        .btn-limpar:hover { 
+            background: #991b1b; 
+            transform: translateY(-2px); 
+        }
+
+        .botoes {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .status-tag { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
+        .bg-trabalho { background: #dcfce7; color: #166534; }
+        .bg-extra { background: #fef9c3; color: #854d0e; }
+        .bg-folga { background: #e0e7ff; color: #1e3a8a; }
+        .bg-cem { background: #ffe4e6; color: #9f1239; border: 1px dashed #f43f5e; }
+
+        .trab-row { background: #ffffff; }
+        .folga-row { background: #f8fafc; }
+
+        .total-box { 
+            margin-top: 30px; display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; 
+        }
+        .box { 
+            background: white; padding: 25px; border-radius: 15px; 
+            border-left: 6px solid var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            text-align: center;
+        }
+        .box h2 { font-size: 14px; color: #64748b; text-transform: uppercase; margin-bottom: 10px; }
+        .box p { font-size: 32px; font-weight: 700; color: var(--primary); }
+        .box small { font-size: 12px; color: #64748b; display: block; margin-top: 5px; }
+
+        @media (max-width: 768px) {
+            .topo { flex-direction: column; text-align: center; }
+            .topo #icone { margin-top: 20px; }
+            .topo h1 { font-size: 22px; }
+            body { padding: 10px; }
+            input[type="time"] { width: 85px; font-size: 11px; }
+            th { font-size: 10px; }
+        }
+
+        /* MENU HAMBURGUER */
+        .menu-btn{
+            font-size:32px;
+            cursor:pointer;
+            color:white;
+            user-select:none;
+            transition:0.3s;
+        }
+        .menu-btn:hover{ transform:scale(1.1); }
+
+        .menu{
+            position:fixed;
+            top:0;
+            left:-260px;
+            width:240px;
+            height:100%;
+            background:#111827;
+            padding-top:90px;
+            transition:0.4s;
+            z-index:999;
+            box-shadow:5px 0 20px rgba(0,0,0,0.2);
+        }
+        .menu a{
+            display:block;
+            color:white;
+            text-decoration:none;
+            padding:18px 25px;
+            font-size:17px;
+            transition:0.3s;
+            border-bottom:1px solid rgba(255,255,255,0.05);
+        }
+        .menu a:hover{
+            background:#1f2937;
+            padding-left:35px;
+        }
+        .menu.ativo{ left:0; }
+
+        .logo {
+            border-radius: 12px;
+            width: 120px;
+            height: auto;
+            object-fit: cover;
+            margin: 30px auto;
+            display: block;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.0);
+        }
+
+        /* MODO ESCURO */
+        body.dark {
+            background: #0f172a;
+            color: white;
+        }
+        body.dark .card {
+            background: #1e293b;
+            color: white;
+        }
+        body.dark .box {
+            background: #1e293b;
+            color: white;
+            border-left-color: #16a34a;
+        }
+        body.dark table {
+            color: white;
+        }
+        body.dark td {
+            border-bottom: 1px solid #334155;
+        }
+        body.dark input {
+            background: #0f172a;
+            color: white;
+            border: 1px solid #334155;
+        }
+        body.dark input:disabled {
+            background: #1e293b;
+            color: #64748b;
+        }
+        body.dark .folga-row { background: #1e293b; }
+        body.dark .trab-row { background: #0f172a; }
+        body.dark tr:hover { background-color: #334155; }
+
+        .calc-info {
+            background: #e0f2fe;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            text-align: center;
+        }
+        body.dark .calc-info {
+            background: #0c4a6e;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<div class="menu" id="menu" onclick="abrirMenu()">
+    <a href="#" onclick="window.print()">🖨️ IMPRIMIR</a>
+    <a href="javascript:void(0)" onclick="toggleModoEscuro()">🌙 Modo escuro</a>
+    <a href="index.html">📄 Escala Normal</a>
+    <a href="wt-sistemas.html">💻 Desenvolvedor</a>
+    <img src="icon/logo.png" class="logo" alt="logo">
+</div>
+
+<div class="container">
+    <div class="topo">
+        <div class="topo-texto">
+            <h1>Sistema de Cálculo<br>
+de Ponto Individual <br>Escala 12x36</h1>
+           
+        </div>
+        <img src="icon/icone.jpg" alt="Menu" class="menu-btn" onclick="abrirMenu()" id="icone">
+    </div>
+
+    <div class="card">
+   
+        <table>
+            <thead>
+                <tr>
+                    <th>Dia</th>
+                    <th>Entrada</th>
+                    <th>Inicio Intervalo</th>
+                    <th>Fim Intervalo</th>
+                    <th>Saída</th>
+                    <th>100%</th>
+                    <th>Status</th>
+                    <th>Horas Trabalhadas</th>
+                    <th>Hora Extra (50%)</th>
+                    <th>Hora Extra (100%)</th>
+                </tr>
+            </thead>
+            <tbody id="tabelaBody"></tbody>
+        </table>
+        <div class="botoes">
+            <button class="btn-calcular" onclick="calcularJornada()">📊 Calcular Resultados</button>
+            <button class="btn-limpar" onclick="limparHorarios()">🗑️ Limpar Campos</button>
+        </div>
+        <div class="total-box">
+            <div class="box">
+                <h2>📆 Dias Trabalhados</h2>
+                <p id="diasTrabalhados">0</p>
+                <small>dias com horário registrado</small>
+            </div>
+            <div class="box">
+                <h2>⏱️ Total 50%</h2>
+                <p id="totalExtras50">00:00</p>
+                <small>excedente de 12h em dias normais</small>
+            </div>
+            <div class="box">
+                <h2>💰 Total 100%</h2>
+                <p id="totalExtras100">00:00</p>
+                <small>total trabalhado em dias marcados 100%</small>
+            </div>
+            <div class="box">
+                <h2>💰 Base Cálculo</h2>
+                <p id="baseMultiplicador">0</p>
+                <small>dias trabalhados × 7</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const BASE_MINUTOS = 12 * 60;      // 720 min (12h de jornada padrão)
+    const TOLERANCIA = 15;             // 15 min
+
+    function toMinutes(horarioStr) {
+        if (!horarioStr) return null;
+        const [h, m] = horarioStr.split(':').map(Number);
+        if (isNaN(h) || isNaN(m)) return null;
+        return h * 60 + m;
+    }
+
+    function formatarMinutos(minutos) {
+        if (minutos === undefined || minutos === null || isNaN(minutos)) return "00:00";
+        const sinal = minutos < 0 ? -1 : 1;
+        const absMin = Math.abs(minutos);
+        const horas = Math.floor(absMin / 60);
+        const mins = absMin % 60;
+        return `${sinal === -1 ? '-' : ''}${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+    }
+
+    function calcularHorasTrabalhadas(mEntrada, mAlmSaida, mAlmRetorno, mSaida) {
+        let primeiroTurno = mAlmSaida - mEntrada;
+        if (primeiroTurno < 0) primeiroTurno += 24 * 60;
+
+        let segundoTurno = mSaida - mAlmRetorno;
+        if (segundoTurno < 0) segundoTurno += 24 * 60;
+
+        return primeiroTurno + segundoTurno;
+    }
+
+    function getStatusText(minutosTrabalhados, isDiaCem, isCompleto) {
+        if (!isCompleto) return '<span class="status-tag bg-trabalho">-</span>';
+        if (isDiaCem) return '<span class="status-tag bg-cem">Hora-100%</span>';
+        if (minutosTrabalhados > BASE_MINUTOS + TOLERANCIA) {
+            return '<span class="status-tag bg-extra"> Hora-Extra</span>';
+        }
+        return '<span class="status-tag bg-trabalho"> NORMAL</span>';
+    }
+
+    // Gerar tabela com 31 dias
+    const tbody = document.getElementById("tabelaBody");
+    for (let dia = 1; dia <= 31; dia++) {
+        const trabalha = (dia % 2 === 1); 
+        const rowClass = trabalha ? "trab-row" : "folga-row";
+        
+        const tr = document.createElement("tr");
+        tr.id = `linha_${dia}`;
+        tr.className = rowClass;
+        
+        const tdDia = document.createElement("td");
+        tdDia.innerHTML = `<strong>${String(dia).padStart(2, '0')}</strong>`;
+        tr.appendChild(tdDia);
+        
+        const tdEntrada = document.createElement("td");
+        const inputEntrada = document.createElement("input");
+        inputEntrada.type = "time";
+        inputEntrada.classList.add("entrada");
+        inputEntrada.disabled = !trabalha;
+        tdEntrada.appendChild(inputEntrada);
+        tr.appendChild(tdEntrada);
+
+        const tdAlmSaida = document.createElement("td");
+        const inputAlmSaida = document.createElement("input");
+        inputAlmSaida.type = "time";
+        inputAlmSaida.classList.add("alm-saida");
+        inputAlmSaida.disabled = !trabalha;
+        tdAlmSaida.appendChild(inputAlmSaida);
+        tr.appendChild(tdAlmSaida);
+
+        const tdAlmRetorno = document.createElement("td");
+        const inputAlmRetorno = document.createElement("input");
+        inputAlmRetorno.type = "time";
+        inputAlmRetorno.classList.add("alm-retorno");
+        inputAlmRetorno.disabled = !trabalha;
+        tdAlmRetorno.appendChild(inputAlmRetorno);
+        tr.appendChild(tdAlmRetorno);
+        
+        const tdSaida = document.createElement("td");
+        const inputSaida = document.createElement("input");
+        inputSaida.type = "time";
+        inputSaida.classList.add("saida");
+        inputSaida.disabled = !trabalha;
+        tdSaida.appendChild(inputSaida);
+        tr.appendChild(tdSaida);
+
+        const tdCem = document.createElement("td");
+        const checkCem = document.createElement("input");
+        checkCem.type = "checkbox";
+        checkCem.classList.add("check-cem");
+        checkCem.disabled = !trabalha;
+        tdCem.appendChild(checkCem);
+        tr.appendChild(tdCem);
+        
+        const tdStatus = document.createElement("td");
+        tdStatus.classList.add("status-cell");
+        if (!trabalha) {
+            tdStatus.innerHTML = `<span class="status-tag bg-folga">🔵 FOLGA</span>`;
+        } else {
+            tdStatus.innerHTML = `<span class="status-tag bg-trabalho">-</span>`;
+        }
+        tr.appendChild(tdStatus);
+        
+        const tdHorasTrab = document.createElement("td");
+        tdHorasTrab.classList.add("horas-trabalhadas-cell");
+        tdHorasTrab.innerText = "00:00";
+        tr.appendChild(tdHorasTrab);
+        
+        // Coluna de 50%
+        const tdExtra50 = document.createElement("td");
+        tdExtra50.classList.add("extra-50-cell");
+        tdExtra50.innerText = "00:00";
+        tr.appendChild(tdExtra50);
+
+        // Coluna de 100%
+        const tdExtra100 = document.createElement("td");
+        tdExtra100.classList.add("extra-100-cell");
+        tdExtra100.innerText = "00:00";
+        tr.appendChild(tdExtra100);
+        
+        tbody.appendChild(tr);
+    }
+
+    function calcularJornada() {
+        let diasTrabalhados = 0;
+        let somaExtra50Minutos = 0;
+        let somaExtra100Minutos = 0;
+
+        for (let dia = 1; dia <= 31; dia++) {
+            const trabalha = (dia % 2 === 1);
+            if (!trabalha) continue;
+
+            const linha = document.getElementById(`linha_${dia}`);
+            const entInput = linha.querySelector(".entrada");
+            const almSaidaInput = linha.querySelector(".alm-saida");
+            const almRetInput = linha.querySelector(".alm-retorno");
+            const saiInput = linha.querySelector(".saida");
+            const checkCem = linha.querySelector(".check-cem");
+            const horasTrabCell = linha.querySelector(".horas-trabalhadas-cell");
+            const extra50Cell = linha.querySelector(".extra-50-cell");
+            const extra100Cell = linha.querySelector(".extra-100-cell");
+            const statusCell = linha.querySelector(".status-cell");
+
+            const isCompleto = entInput.value && almSaidaInput.value && almRetInput.value && saiInput.value;
+            
+            if (!isCompleto) {
+                horasTrabCell.innerText = "00:00";
+                extra50Cell.innerText = "00:00";
+                extra100Cell.innerText = "00:00";
+                statusCell.innerHTML = `<span class="status-tag bg-trabalho">-</span>`;
+                continue;
+            }
+
+            const mEntrada = toMinutes(entInput.value);
+            const mAlmSaida = toMinutes(almSaidaInput.value);
+            const mAlmRetorno = toMinutes(almRetInput.value);
+            const mSaida = toMinutes(saiInput.value);
+
+            if (mEntrada === null || mAlmSaida === null || mAlmRetorno === null || mSaida === null) {
+                horasTrabCell.innerText = "00:00";
+                extra50Cell.innerText = "00:00";
+                extra100Cell.innerText = "00:00";
+                statusCell.innerHTML = `<span class="status-tag bg-trabalho">⚠️ ERRO</span>`;
+                continue;
+            }
+
+            const minutosTrabalhados = calcularHorasTrabalhadas(mEntrada, mAlmSaida, mAlmRetorno, mSaida);
+            const isDiaCem = checkCem.checked;
+            
+            let extra50 = 0;
+            let extra100 = 0;
+
+            if (isDiaCem) {
+                // Se o dia é 100%, todas as horas trabalhadas vão para os 100%
+                extra100 = minutosTrabalhados;
+                extra50 = 0;
+            } else {
+                // Se o dia é normal, calcula o que passou de 12h com tolerância de 15min
+                if (minutosTrabalhados > BASE_MINUTOS + TOLERANCIA) {
+                    extra50 = minutosTrabalhados - BASE_MINUTOS;
+                }
+                extra100 = 0;
+            }
+            
+            horasTrabCell.innerText = formatarMinutos(minutosTrabalhados);
+            extra50Cell.innerText = formatarMinutos(extra50);
+            extra100Cell.innerText = formatarMinutos(extra100);
+            statusCell.innerHTML = getStatusText(minutosTrabalhados, isDiaCem, true);
+            
+            diasTrabalhados++;
+            somaExtra50Minutos += extra50;
+            somaExtra100Minutos += extra100;
+        }
+
+        // Atualizar cards de resumo de forma segura e sem erros
+        document.getElementById("diasTrabalhados").innerText = diasTrabalhados;
+        document.getElementById("totalExtras50").innerText = formatarMinutos(somaExtra50Minutos);
+        document.getElementById("totalExtras100").innerText = formatarMinutos(somaExtra100Minutos);
+        
+        const baseCalc = diasTrabalhados * 7;
+        document.getElementById("baseMultiplicador").innerHTML = `${baseCalc} <small>(dias × 7)</small>`;
+    }
+
+    function limparHorarios() {
+        const confirmar = confirm("Tem certeza que deseja limpar todos os horários e seleções?");
+        if (!confirmar) return;
+
+        for (let dia = 1; dia <= 31; dia++) {
+            const trabalha = (dia % 2 === 1);
+            if (!trabalha) continue;
+            
+            const linha = document.getElementById(`linha_${dia}`);
+            const entInput = linha.querySelector(".entrada");
+            const almSaidaInput = linha.querySelector(".alm-saida");
+            const almRetInput = linha.querySelector(".alm-retorno");
+            const saiInput = linha.querySelector(".saida");
+            const checkCem = linha.querySelector(".check-cem");
+            
+            if (entInput) entInput.value = "";
+            if (almSaidaInput) almSaidaInput.value = "";
+            if (almRetInput) almRetInput.value = "";
+            if (saiInput) saiInput.value = "";
+            if (checkCem) checkCem.checked = false;
+            
+            const horasTrabCell = linha.querySelector(".horas-trabalhadas-cell");
+            const extra50Cell = linha.querySelector(".extra-50-cell");
+            const extra100Cell = linha.querySelector(".extra-100-cell");
+            const statusCell = linha.querySelector(".status-cell");
+            
+            if (horasTrabCell) horasTrabCell.innerText = "00:00";
+            if (extra50Cell) extra50Cell.innerText = "00:00";
+            if (extra100Cell) extra100Cell.innerText = "00:00";
+            if (statusCell && trabalha) {
+                statusCell.innerHTML = `<span class="status-tag bg-trabalho">🟢 TRABALHO</span>`;
+            }
+        }
+        
+        document.getElementById("diasTrabalhados").innerText = "0";
+        document.getElementById("totalExtras50").innerText = "00:00";
+        document.getElementById("totalExtras100").innerText = "00:00";
+        document.getElementById("baseMultiplicador").innerHTML = "0 <small>(dias × 7)</small>";
+    }
+
+    function limparTudo() {
+        limparHorarios();
+    }
+
+    function abrirMenu() {
+        document.getElementById("menu").classList.toggle("ativo");
+    }
+
+    function toggleModoEscuro() {
+        document.body.classList.toggle("dark");
+        if (document.body.classList.contains("dark")) {
+            localStorage.setItem("temaWT", "dark");
+        } else {
+            localStorage.setItem("temaWT", "light");
+        }
+    }
+
+    document.addEventListener("click", function(event) {
+        const menu = document.getElementById("menu");
+        const icone = document.getElementById("icone");
+        if (menu.classList.contains("ativo") && !menu.contains(event.target) && event.target !== icone) {
+            menu.classList.remove("ativo");
+        }
+    });
+
+    window.onload = function() {
+        if (localStorage.getItem("temaWT") === "dark") {
+            document.body.classList.add("dark");
+        }
+    };
+</script>
+
+</body>
+</html>
+
