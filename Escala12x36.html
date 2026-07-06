@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -115,6 +114,38 @@
             flex-wrap: wrap;
         }
 
+        .btn-salvar {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .btn-salvar:hover {
+            background: #4338ca;
+            transform: translateY(-2px);
+        }
+
+        .btn-consultar {
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .btn-consultar:hover {
+            background: #0284c7;
+            transform: translateY(-2px);
+        }
+
         .status-tag { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
         .bg-trabalho { background: #dcfce7; color: #166534; }
         .bg-extra { background: #fef9c3; color: #854d0e; }
@@ -159,14 +190,15 @@
         .menu{
             position:fixed;
             top:0;
-            left:-260px;
-            width:240px;
+            left:-280px;
+            width:260px;
             height:100%;
             background:#111827;
-            padding-top:90px;
+            padding-top:60px;
             transition:0.4s;
             z-index:999;
             box-shadow:5px 0 20px rgba(0,0,0,0.2);
+            overflow-y: auto;
         }
         .menu a{
             display:block;
@@ -176,6 +208,7 @@
             font-size:17px;
             transition:0.3s;
             border-bottom:1px solid rgba(255,255,255,0.05);
+            cursor:pointer;
         }
         .menu a:hover{
             background:#1f2937;
@@ -238,13 +271,151 @@
             background: #0c4a6e;
             color: white;
         }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 3% auto;
+            padding: 25px;
+            border-radius: 18px;
+            width: 92%;
+            max-width: 1000px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        body.dark .modal-content {
+            background-color: #1e293b;
+            color: white;
+        }
+
+        .close-modal {
+            position: sticky;
+            top: 0;
+            float: right;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #666;
+            background: white;
+            padding: 0 12px;
+            border-radius: 8px;
+            z-index: 10;
+        }
+
+        body.dark .close-modal {
+            color: white;
+            background: #1e293b;
+        }
+
+        .close-modal:hover {
+            color: #dc2626;
+        }
+
+        .registro-item {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--primary);
+        }
+
+        body.dark .registro-item {
+            background: #2d3748;
+        }
+
+        .registro-data {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 16px;
+        }
+
+        body.dark .registro-data {
+            color: #60a5fa;
+        }
+
+        .sem-registros {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 18px;
+        }
+
+        .btn-excluir-registro {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+
+        .btn-excluir-registro:hover {
+            background: #b91c1c;
+        }
+
+        .registro-detalhes {
+            margin-top: 12px;
+            font-size: 13px;
+        }
+
+        .registro-detalhes table {
+            min-width: auto;
+            font-size: 12px;
+        }
+
+        .registro-detalhes th {
+            padding: 6px 4px;
+            font-size: 10px;
+        }
+
+        .registro-detalhes td {
+            padding: 5px 4px;
+            font-size: 11px;
+        }
+
+        .registro-resumo {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 10px 0;
+        }
+
+        .registro-resumo span {
+            background: #e0f2fe;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+        }
+
+        body.dark .registro-resumo span {
+            background: #0c4a6e;
+            color: white;
+        }
     </style>
 </head>
 <body>
 
-<div class="menu" id="menu" onclick="abrirMenu()">
+<div class="menu" id="menu">
     <a href="#" onclick="window.print()">🖨️ IMPRIMIR</a>
     <a href="javascript:void(0)" onclick="toggleModoEscuro()">🌙 Modo escuro</a>
+    <a href="javascript:void(0)" onclick="salvarRegistro()">💾 Salvar Cálculo</a>
+    <a href="javascript:void(0)" onclick="abrirModalConsulta()">📋 Consultar Registros</a>
     <a href="index.html">📄 Escala Normal</a>
     <a href="wt-sistemas.html">💻 Desenvolvedor</a>
     <img src="logo.png" class="logo" alt="logo">
@@ -255,13 +426,11 @@
         <div class="topo-texto">
             <h1>Sistema de Cálculo<br>
 de Ponto Individual <br>Escala 12x36</h1>
-           
         </div>
         <img src="icone.jpg" alt="Menu" class="menu-btn" onclick="abrirMenu()" id="icone">
     </div>
 
     <div class="card">
-   
         <table>
             <thead>
                 <tr>
@@ -282,6 +451,8 @@ de Ponto Individual <br>Escala 12x36</h1>
         <div class="botoes">
             <button class="btn-calcular" onclick="calcularJornada()">📊 Calcular Resultados</button>
             <button class="btn-limpar" onclick="limparHorarios()">🗑️ Limpar Campos</button>
+            <button class="btn-salvar" onclick="salvarRegistro()">💾 Salvar Cálculo</button>
+            <button class="btn-consultar" onclick="abrirModalConsulta()">📋 Consultar</button>
         </div>
         <div class="total-box">
             <div class="box">
@@ -305,6 +476,15 @@ de Ponto Individual <br>Escala 12x36</h1>
                 <small>dias trabalhados × 7</small>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Modal de Consulta -->
+<div id="modalConsulta" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="fecharModal()">&times;</span>
+        <h2 style="margin-bottom: 20px;">📋 Registros Salvos - Escala 12x36</h2>
+        <div id="listaRegistros"></div>
     </div>
 </div>
 
@@ -347,7 +527,7 @@ de Ponto Individual <br>Escala 12x36</h1>
         return '<span class="status-tag bg-trabalho"> NORMAL</span>';
     }
 
-    // Gerar tabela com 31 dias
+    // ==================== GERAR TABELA ====================
     const tbody = document.getElementById("tabelaBody");
     for (let dia = 1; dia <= 31; dia++) {
         const trabalha = (dia % 2 === 1); 
@@ -415,13 +595,11 @@ de Ponto Individual <br>Escala 12x36</h1>
         tdHorasTrab.innerText = "00:00";
         tr.appendChild(tdHorasTrab);
         
-        // Coluna de 50%
         const tdExtra50 = document.createElement("td");
         tdExtra50.classList.add("extra-50-cell");
         tdExtra50.innerText = "00:00";
         tr.appendChild(tdExtra50);
 
-        // Coluna de 100%
         const tdExtra100 = document.createElement("td");
         tdExtra100.classList.add("extra-100-cell");
         tdExtra100.innerText = "00:00";
@@ -430,10 +608,12 @@ de Ponto Individual <br>Escala 12x36</h1>
         tbody.appendChild(tr);
     }
 
+    // ==================== CALCULAR JORNADA ====================
     function calcularJornada() {
         let diasTrabalhados = 0;
         let somaExtra50Minutos = 0;
         let somaExtra100Minutos = 0;
+        let dadosLinhas = [];
 
         for (let dia = 1; dia <= 31; dia++) {
             const trabalha = (dia % 2 === 1);
@@ -457,6 +637,18 @@ de Ponto Individual <br>Escala 12x36</h1>
                 extra50Cell.innerText = "00:00";
                 extra100Cell.innerText = "00:00";
                 statusCell.innerHTML = `<span class="status-tag bg-trabalho">-</span>`;
+                dadosLinhas.push({
+                    dia: dia,
+                    entrada: '',
+                    almSaida: '',
+                    almRetorno: '',
+                    saida: '',
+                    isCem: false,
+                    horasTrabalhadas: '00:00',
+                    extra50: '00:00',
+                    extra100: '00:00',
+                    status: '-'
+                });
                 continue;
             }
 
@@ -480,36 +672,184 @@ de Ponto Individual <br>Escala 12x36</h1>
             let extra100 = 0;
 
             if (isDiaCem) {
-                // Se o dia é 100%, todas as horas trabalhadas vão para os 100%
                 extra100 = minutosTrabalhados;
                 extra50 = 0;
             } else {
-                // Se o dia é normal, calcula o que passou de 12h com tolerância de 15min
                 if (minutosTrabalhados > BASE_MINUTOS + TOLERANCIA) {
                     extra50 = minutosTrabalhados - BASE_MINUTOS;
                 }
                 extra100 = 0;
             }
             
+            const statusText = getStatusText(minutosTrabalhados, isDiaCem, true);
             horasTrabCell.innerText = formatarMinutos(minutosTrabalhados);
             extra50Cell.innerText = formatarMinutos(extra50);
             extra100Cell.innerText = formatarMinutos(extra100);
-            statusCell.innerHTML = getStatusText(minutosTrabalhados, isDiaCem, true);
+            statusCell.innerHTML = statusText;
             
             diasTrabalhados++;
             somaExtra50Minutos += extra50;
             somaExtra100Minutos += extra100;
+
+            dadosLinhas.push({
+                dia: dia,
+                entrada: entInput.value,
+                almSaida: almSaidaInput.value,
+                almRetorno: almRetInput.value,
+                saida: saiInput.value,
+                isCem: isDiaCem,
+                horasTrabalhadas: formatarMinutos(minutosTrabalhados),
+                extra50: formatarMinutos(extra50),
+                extra100: formatarMinutos(extra100),
+                status: statusText.replace(/<[^>]*>/g, '').trim() || '-'
+            });
         }
 
-        // Atualizar cards de resumo de forma segura e sem erros
         document.getElementById("diasTrabalhados").innerText = diasTrabalhados;
         document.getElementById("totalExtras50").innerText = formatarMinutos(somaExtra50Minutos);
         document.getElementById("totalExtras100").innerText = formatarMinutos(somaExtra100Minutos);
-        
-        const baseCalc = diasTrabalhados * 7;
-        document.getElementById("baseMultiplicador").innerHTML = `${baseCalc} <small>(dias × 7)</small>`;
+        document.getElementById("baseMultiplicador").innerHTML = `${diasTrabalhados * 7} <small>(dias × 7)</small>`;
+
+        // Armazena dados para salvar
+        window.dadosCalculados = {
+            tipo: '12x36',
+            linhas: dadosLinhas,
+            diasTrabalhados: diasTrabalhados,
+            totalExtra50: formatarMinutos(somaExtra50Minutos),
+            totalExtra100: formatarMinutos(somaExtra100Minutos),
+            baseMultiplicador: diasTrabalhados * 7,
+            data: new Date().toLocaleString()
+        };
     }
 
+    // ==================== SALVAR REGISTRO ====================
+    function salvarRegistro() {
+        calcularJornada();
+
+        if (!window.dadosCalculados) {
+            alert('⚠️ Nenhum dado para salvar. Calcule os resultados primeiro!');
+            return;
+        }
+
+        const temDados = window.dadosCalculados.linhas.some(l => l.entrada || l.saida);
+        if (!temDados) {
+            alert('⚠️ Nenhum horário preenchido para salvar!');
+            return;
+        }
+
+        const registro = {
+            id: Date.now(),
+            dataHora: new Date().toLocaleString(),
+            dados: window.dadosCalculados,
+            tipo: '12x36'
+        };
+
+        let registros = JSON.parse(localStorage.getItem('registrosPonto12x36')) || [];
+        registros.push(registro);
+        localStorage.setItem('registrosPonto12x36', JSON.stringify(registros));
+
+        alert('✅ Registro salvo com sucesso!');
+    }
+
+    // ==================== CONSULTAR REGISTROS ====================
+    function abrirModalConsulta() {
+        const modal = document.getElementById('modalConsulta');
+        modal.style.display = 'block';
+        carregarRegistros();
+    }
+
+    function fecharModal() {
+        document.getElementById('modalConsulta').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('modalConsulta');
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    function carregarRegistros() {
+        const container = document.getElementById('listaRegistros');
+        const registros = JSON.parse(localStorage.getItem('registrosPonto12x36')) || [];
+
+        if (registros.length === 0) {
+            container.innerHTML = '<div class="sem-registros">📭 Nenhum registro encontrado.</div>';
+            return;
+        }
+
+        let html = '';
+        registros.reverse().forEach((reg) => {
+            html += `
+                <div class="registro-item">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                        <div>
+                            <span class="registro-data">📅 ${reg.dataHora}</span>
+                            <span style="margin-left:15px;">Dias: <strong>${reg.dados.diasTrabalhados}</strong></span>
+                            <span style="margin-left:15px;">50%: <strong>${reg.dados.totalExtra50}</strong></span>
+                            <span style="margin-left:15px;">100%: <strong>${reg.dados.totalExtra100}</strong></span>
+                            <span style="margin-left:15px;">Base: <strong>${reg.dados.baseMultiplicador}</strong></span>
+                        </div>
+                        <div>
+                            <button class="btn-excluir-registro" onclick="excluirRegistro(${reg.id})">🗑️ Excluir</button>
+                        </div>
+                    </div>
+                    <div class="registro-detalhes">
+                        <table style="width:100%; min-width:auto; font-size:11px;">
+                            <thead>
+                                <tr>
+                                    <th>Dia</th>
+                                    <th>Entrada</th>
+                                    <th>Saída Alm.</th>
+                                    <th>Volta Alm.</th>
+                                    <th>Saída</th>
+                                    <th>100%</th>
+                                    <th>Total</th>
+                                    <th>Extra 50%</th>
+                                    <th>Extra 100%</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+            reg.dados.linhas.forEach(l => {
+                const isFolga = (l.dia % 2 === 0);
+                html += `
+                    <tr style="${isFolga ? 'opacity:0.6;' : ''}">
+                        <td>${String(l.dia).padStart(2, '0')}</td>
+                        <td>${isFolga ? 'FOLGA' : l.entrada}</td>
+                        <td>${isFolga ? '-' : l.almSaida}</td>
+                        <td>${isFolga ? '-' : l.almRetorno}</td>
+                        <td>${isFolga ? '-' : l.saida}</td>
+                        <td>${isFolga ? '-' : (l.isCem ? '✅' : '')}</td>
+                        <td>${isFolga ? '-' : l.horasTrabalhadas}</td>
+                        <td>${isFolga ? '-' : l.extra50}</td>
+                        <td>${isFolga ? '-' : l.extra100}</td>
+                        <td>${isFolga ? 'FOLGA' : l.status}</td>
+                    </tr>
+                `;
+            });
+            html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    function excluirRegistro(id) {
+        if (!confirm('Tem certeza que deseja excluir este registro?')) return;
+        
+        let registros = JSON.parse(localStorage.getItem('registrosPonto12x36')) || [];
+        registros = registros.filter(reg => reg.id !== id);
+        localStorage.setItem('registrosPonto12x36', JSON.stringify(registros));
+        carregarRegistros();
+    }
+
+    // ==================== LIMPAR ====================
     function limparHorarios() {
         const confirmar = confirm("Tem certeza que deseja limpar todos os horários e seleções?");
         if (!confirmar) return;
@@ -540,7 +880,7 @@ de Ponto Individual <br>Escala 12x36</h1>
             if (extra50Cell) extra50Cell.innerText = "00:00";
             if (extra100Cell) extra100Cell.innerText = "00:00";
             if (statusCell && trabalha) {
-                statusCell.innerHTML = `<span class="status-tag bg-trabalho">🟢 TRABALHO</span>`;
+                statusCell.innerHTML = `<span class="status-tag bg-trabalho">-</span>`;
             }
         }
         
@@ -548,12 +888,11 @@ de Ponto Individual <br>Escala 12x36</h1>
         document.getElementById("totalExtras50").innerText = "00:00";
         document.getElementById("totalExtras100").innerText = "00:00";
         document.getElementById("baseMultiplicador").innerHTML = "0 <small>(dias × 7)</small>";
+        
+        window.dadosCalculados = null;
     }
 
-    function limparTudo() {
-        limparHorarios();
-    }
-
+    // ==================== MENU E TEMA ====================
     function abrirMenu() {
         document.getElementById("menu").classList.toggle("ativo");
     }
@@ -584,4 +923,3 @@ de Ponto Individual <br>Escala 12x36</h1>
 
 </body>
 </html>
-
