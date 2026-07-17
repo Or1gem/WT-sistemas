@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>GM-Calculadora Profissional de Ponto</title>
     
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
     <style>
         :root {
             --primary: #0f172a;
@@ -14,24 +17,45 @@
             --danger: #dc2626;
             --warning: #f59e0b;
             --bg: #f4f7fb;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --border: #e2e8f0;
+            --shadow: 0 4px 20px rgba(0,0,0,0.08);
+            --radius: 16px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:'Poppins', sans-serif; background: var(--bg); padding: 18px; color: #0f172a; }
+        body { 
+            font-family:'Poppins', sans-serif; 
+            background: var(--bg); 
+            padding: 18px; 
+            color: var(--text);
+            transition: background var(--transition), color var(--transition);
+        }
         
+        body.dark {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f1f5f9;
+            --border: #334155;
+            --shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+
         .container { max-width: 1400px; margin: auto; }
         
         .topo { 
             background: linear-gradient(135deg, var(--primary), var(--secondary)); 
             color: white; 
             padding: 20px; 
-            border-radius: 18px; 
+            border-radius: var(--radius); 
             margin-bottom: 18px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
             text-align: center; 
+            flex-wrap: wrap;
         }
 
         .topo-texto h1 { font-size: 28px; letter-spacing: 1px; }
@@ -43,211 +67,278 @@
             height: auto;
             object-fit: cover;
             margin: 10px; 
-            box-shadow: 0 4px 10px rgba(1,0,0,0.0);
             cursor: pointer;
+            transition: transform var(--transition);
         }
+        .topo #icone:hover { transform: scale(1.05); }
 
         .card { 
-            background: white; padding: 20px; border-radius: 18px; 
-            box-shadow: 0 5px 20px rgba(0,0,0,0.05); overflow-x: auto; 
+            background: var(--card-bg); 
+            padding: 20px; 
+            border-radius: var(--radius); 
+            box-shadow: var(--shadow);
+            overflow-x: auto; 
+            transition: background var(--transition), box-shadow var(--transition);
         }
 
+        /* ===== TABELA ===== */
         table { width: 100%; border-collapse: collapse; min-width: 1100px; }
         th { 
-            background: var(--primary); color: white; padding: 1px; 
-            font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
-            position: sticky; top: 0;
-        }
-        td { border-bottom: 1px solid #eee; padding: 12px 8px; text-align: center; font-size: 14px; }
-        
-        tr:hover { background-color: #f8fafc; }
-        
-        input[type="time"] { 
-            width: 105px; padding: 6px; border-radius: 8px; 
-            border: 1px solid #cbd5e1; font-family: inherit; outline-color: var(--success);
-        }
-        
-        input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary); }
-
-        .btn-calcular { 
-            background: var(--success); 
+            background: var(--primary); 
             color: white; 
-            border: none; 
-            padding: 16px 40px; 
-            border-radius: 12px; 
+            padding: 10px 6px; 
+            font-size: 12px; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px;
+            position: sticky; 
+            top: 0;
+            z-index: 10;
+        }
+        td { 
+            border-bottom: 1px solid var(--border); 
+            padding: 10px 6px; 
+            text-align: center; 
+            font-size: 14px;
+            transition: background var(--transition);
+        }
+        
+        tr:hover { background: rgba(0,0,0,0.02); }
+        body.dark tr:hover { background: rgba(255,255,255,0.03); }
+        
+        input[type="time"], input[type="text"] { 
+            width: 105px; 
+            padding: 6px 8px; 
+            border-radius: 8px; 
+            border: 1px solid var(--border); 
+            background: var(--bg);
+            color: var(--text);
+            font-family: inherit; 
+            transition: border-color var(--transition), background var(--transition), color var(--transition);
+            outline: none;
+        }
+        input[type="time"]:focus, input[type="text"]:focus {
+            border-color: var(--success);
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
+        }
+        
+        input[type="checkbox"] { 
+            width: 18px; 
+            height: 18px; 
             cursor: pointer; 
-            font-size: 16px; 
-            font-weight: 600; 
-            transition: 0.3s; 
+            accent-color: var(--primary);
+            transition: transform var(--transition);
+        }
+        input[type="checkbox"]:hover { transform: scale(1.1); }
+
+        .nota-input {
+            width: 80px;
+            font-size: 11px;
+            padding: 4px 6px;
         }
 
-        .btn-calcular:hover {
-            background: #15803d;
-            transform: translateY(-2px);
-        }
+        /* ===== CORES INTELIGENTES ===== */
+        tr.extra-positiva { background: #dcfce7 !important; }
+        tr.extra-negativa { background: #fee2e2 !important; }
+        tr.jornada-reduzida { background: #fef3c7 !important; }
+        tr.feriado-row { background: #fffbeb !important; }
+        tr.sabado-row { background: #f0f9ff !important; }
+        
+        body.dark tr.extra-positiva { background: #064e3b !important; }
+        body.dark tr.extra-negativa { background: #7f1d1d !important; }
+        body.dark tr.jornada-reduzida { background: #78350f !important; }
+        body.dark tr.feriado-row { background: #422b00 !important; }
+        body.dark tr.sabado-row { background: #0c2d4a !important; }
 
-        .btn-limpar { 
-            background: #b91c1c; 
-            color: white; 
-            border: none; 
-            padding: 16px 40px; 
-            border-radius: 12px; 
-            cursor: pointer; 
-            font-size: 16px; 
-            font-weight: 600; 
-            transition: 0.3s; 
+        /* ===== BOTÕES ===== */
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
         }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+        .btn:active { transform: translateY(0); }
 
-        .btn-limpar:hover { 
-            background: #b91c1c; 
-            transform: translateY(-2px); 
-        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-warning { background: var(--warning); color: #0f172a; }
+        .btn-info { background: #0ea5e9; color: white; }
+        .btn-purple { background: #7c3aed; color: white; }
+        .btn-pink { background: #ec4899; color: white; }
 
         .botoes {
             display: flex;
-            gap: 15px;
+            gap: 12px;
             margin-top: 20px;
             justify-content: center;
             flex-wrap: wrap;
         }
-        
-        .extra { color: var(--success); font-weight: 700; }
-        .normal { color: #4c71e0; font-weight: 500; }
-        .status-tag { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
-        .bg-extra { background: #dcfce7; color: #166534; }
-        .bg-normal { background: #4cc8e0; color: #4c71e0; }
-        .bg-feriado { background: #dcfce7; color: #166534; }
-        
-        .feriado-row { background: #fffbeb !important; }
-        .sabado-row { background: #f0f9ff !important; }
 
+        .botoes .btn { padding: 12px 22px; font-size: 14px; }
+
+        /* ===== TOTAL BOX ===== */
         .total-box { 
-            margin-top: 30px; display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; 
+            margin-top: 30px; 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 16px; 
         }
         .box { 
-            background: white; padding: 25px; border-radius: 15px; 
-            border-left: 6px solid var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            background: var(--card-bg); 
+            padding: 20px; 
+            border-radius: var(--radius); 
+            border-left: 6px solid var(--primary); 
+            box-shadow: var(--shadow);
+            transition: background var(--transition), box-shadow var(--transition);
         }
-        .box h2 { font-size: 14px; color: #64748b; text-transform: uppercase; margin-bottom: 10px; }
-        .box p { font-size: 28px; font-weight: 700; color: var(--primary); }
+        .box h2 { 
+            font-size: 13px; 
+            color: #64748b; 
+            text-transform: uppercase; 
+            margin-bottom: 8px; 
+            letter-spacing: 0.5px;
+        }
+        .box p { font-size: 26px; font-weight: 700; color: var(--text); }
 
-        @media (max-width: 768px) {
-            .topo { flex-direction: column; text-align: center; }
-            .topo #icone { margin-top: 20px; }
-            .topo h1 { font-size: 22px; }
-            body { padding: 10px; }
+        /* ===== DASHBOARD ===== */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
         }
-        
-        .btn-print {
-            background: #111827;
-            color: white;
-            border: none;
-            padding: 12px 18px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 15px;
-            display: flex;
-            align-items: center;
+        .dashboard-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            transition: background var(--transition);
+        }
+        .dashboard-card h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: var(--text);
+        }
+        .chart-container {
+            position: relative;
+            height: 200px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
-        .btn-print:hover {
-            background: #374151;
+        .stat-item {
+            background: var(--bg);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            transition: background var(--transition);
+        }
+        .stat-item .number {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .stat-item .label {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
         }
 
-        /* MENU HAMBURGUER */
-        .menu-btn{
-            font-size:32px;
-            cursor:pointer;
-            color:white;
-            user-select:none;
-            transition:0.3s;
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            .topo { flex-direction: column; text-align: center; }
+            .topo #icone { margin-top: 20px; width: 100px; }
+            .topo h1 { font-size: 20px; }
+            body { padding: 10px; }
+            input[type="time"] { width: 70px; font-size: 12px; }
+            .botoes .btn { padding: 10px 16px; font-size: 12px; }
+            .btn { padding: 10px 18px; font-size: 13px; }
+            .box p { font-size: 20px; }
         }
 
-        .menu-btn:hover{
-            transform:scale(1.1);
+        /* ===== MENU ===== */
+        .menu-btn {
+            font-size: 32px;
+            cursor: pointer;
+            color: white;
+            user-select: none;
+            transition: transform var(--transition);
         }
+        .menu-btn:hover { transform: scale(1.1); }
 
-        .menu{
-            position:fixed;
-            top:0;
-            left:-280px;
-            width:260px;
-            height:100%;
-            background:#111827;
-            padding-top:60px;
-            transition:0.4s;
-            z-index:999;
-            box-shadow:5px 0 20px rgba(0,0,0,0.2);
-            border-radius:0 12px 12px 0;
+        .menu {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 280px;
+            height: 100%;
+            background: var(--primary);
+            padding-top: 20px;
+            transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 999;
+            box-shadow: 5px 0 30px rgba(0,0,0,0.3);
+            border-radius: 0 16px 16px 0;
             overflow-y: auto;
         }
+        .menu.ativo { left: 0; }
 
-        .menu a{
-            display:block;
-            color:white;
-            text-decoration:none;
-            padding:18px 25px;
-            font-size:17px;
-            transition:0.3s;
-            border-bottom:1px solid rgba(255,255,255,0.05);
-            cursor:pointer;
+        .menu .menu-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 10px;
         }
-
-        .menu a:hover{
-            background:#1f2937;
-            padding-left:35px;
-        }
-
-        .menu.ativo{
-            left:0;
-        }
-        
-        .logo {
-            border-radius: 12px;
-            width: 120px;
+        .menu .menu-header img {
+            width: 100px;
             height: auto;
-            object-fit: cover;
-            margin: 30px auto;
             display: block;
-            box-shadow: 0 4px 10px rgba(1,0,0,0.0);
+            margin: 0 auto 15px;
+            border-radius: 12px;
         }
-        
-        body.dark {
-            background: #0f172a;
+        .menu .menu-header h2 {
             color: white;
+            font-size: 18px;
+            text-align: center;
+            font-weight: 300;
         }
 
-        body.dark .card {
-            background: #1e293b;
+        .menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            padding: 14px 25px;
+            font-size: 15px;
+            transition: all var(--transition);
+            border-left: 3px solid transparent;
+            cursor: pointer;
+        }
+        .menu a:hover {
+            background: rgba(255,255,255,0.08);
             color: white;
+            border-left-color: var(--success);
+            padding-left: 30px;
+        }
+        .menu a .icon { font-size: 20px; width: 30px; text-align: center; }
+        .menu .divider {
+            height: 1px;
+            background: rgba(255,255,255,0.08);
+            margin: 8px 20px;
         }
 
-        body.dark .box {
-            background: #1e293b;
-            color: white;
-        }
-
-        body.dark table {
-            color: white;
-        }
-
-        body.dark td {
-            border-bottom: 1px solid #334155;
-        }
-
-        body.dark input {
-            background: #0f172a;
-            color: white;
-            border: 1px solid #334155;
-        }
-
-        body.dark .total-box .box {
-            background: #1e293b;
-            border-left-color: #16a34a;
-        }
-
-        /* Modal de Consulta */
+        /* ===== MODAL ===== */
         .modal {
             display: none;
             position: fixed;
@@ -256,187 +347,241 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
             overflow-y: auto;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .modal-content {
-            background-color: white;
-            margin: 5% auto;
+            background: var(--card-bg);
+            margin: 3% auto;
             padding: 25px;
-            border-radius: 18px;
-            width: 90%;
-            max-width: 900px;
-            max-height: 80vh;
+            border-radius: var(--radius);
+            width: 92%;
+            max-width: 1000px;
+            max-height: 88vh;
             overflow-y: auto;
             position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideDown 0.3s ease;
+            transition: background var(--transition);
         }
-
-        body.dark .modal-content {
-            background-color: #1e293b;
-            color: white;
+        @keyframes slideDown {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
 
         .close-modal {
             position: sticky;
             top: 0;
             float: right;
-            font-size: 35px;
+            font-size: 32px;
             font-weight: bold;
             cursor: pointer;
-            color: #666;
-            background: white;
-            padding: 0 10px;
+            color: var(--text);
+            background: var(--card-bg);
+            padding: 0 12px;
             border-radius: 8px;
             z-index: 10;
+            transition: color var(--transition), background var(--transition);
+            line-height: 1;
+        }
+        .close-modal:hover { color: var(--danger); }
+
+        .modal h2 {
+            color: var(--text);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
-        body.dark .close-modal {
-            color: white;
-            background: #1e293b;
-        }
-
-        .close-modal:hover {
-            color: #dc2626;
-        }
-
-        .modal-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-
-        .modal-table th {
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
             background: var(--primary);
             color: white;
-            padding: 10px;
+            padding: 16px 28px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            z-index: 2000;
+            animation: slideUp 0.5s ease;
+            max-width: 380px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--danger); }
+        .toast.warning { background: var(--warning); color: #0f172a; }
+        .toast.info { background: #0ea5e9; }
+
+        /* ===== CONFIGURAÇÕES ===== */
+        .config-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 15px 0;
+        }
+        .config-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .config-item label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+        }
+        .config-item input, .config-item select {
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+            transition: border-color var(--transition);
+            outline: none;
+        }
+        .config-item input:focus, .config-item select:focus {
+            border-color: var(--success);
+        }
+        .config-item small {
             font-size: 12px;
-            position: sticky;
-            top: 0;
+            color: #64748b;
         }
 
-        .modal-table td {
-            padding: 8px 6px;
-            border-bottom: 1px solid #ddd;
-            font-size: 13px;
+        @media (max-width: 600px) {
+            .config-group { grid-template-columns: 1fr; }
+            .modal-content { margin: 2% auto; padding: 18px; }
         }
 
-        body.dark .modal-table td {
-            border-bottom: 1px solid #334155;
+        /* ===== CALENDÁRIO ===== */
+        .calendario-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+            margin-top: 15px;
         }
-
-        .modal-table tr:hover {
-            background: #f8fafc;
+        .calendario-grid .dia-cal {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            background: var(--bg);
+            color: var(--text);
+            transition: all var(--transition);
+            cursor: default;
+            min-height: 50px;
+            padding: 4px;
         }
+        .calendario-grid .dia-cal .num { font-size: 18px; }
+        .calendario-grid .dia-cal .sub { font-size: 9px; opacity: 0.7; }
+        .calendario-grid .dia-cal.feriado { background: #fef3c7; color: #92400e; }
+        .calendario-grid .dia-cal.extra { background: #dcfce7; color: #166534; }
+        .calendario-grid .dia-cal.normal { background: #dbeafe; color: #1e40af; }
+        .calendario-grid .dia-cal.vazio { background: transparent; }
+        body.dark .calendario-grid .dia-cal.feriado { background: #422b00; color: #fbbf24; }
+        body.dark .calendario-grid .dia-cal.extra { background: #064e3b; color: #4ade80; }
+        body.dark .calendario-grid .dia-cal.normal { background: #0c2d4a; color: #60a5fa; }
+        body.dark .calendario-grid .dia-cal { background: #1e293b; }
 
-        body.dark .modal-table tr:hover {
-            background: #2d3748;
+        .calendario-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
         }
-
-        .btn-salvar {
-            background: #4f46e5;
+        .calendario-header button {
+            background: var(--primary);
             color: white;
             border: none;
-            padding: 16px 40px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: 0.3s;
-        }
-
-        .btn-salvar:hover {
-            background: #4338ca;
-            transform: translateY(-2px);
-        }
-
-        .btn-consultar {
-            background: #0ea5e9;
-            color: white;
-            border: none;
-            padding: 16px 40px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: 0.3s;
-        }
-
-        .btn-consultar:hover {
-            background: #0284c7;
-            transform: translateY(-2px);
-        }
-
-        .registro-item {
-            background: #f8fafc;
-            padding: 10px;
+            padding: 8px 16px;
             border-radius: 8px;
-            margin-bottom: 8px;
-            border-left: 4px solid var(--primary);
-        }
-
-        body.dark .registro-item {
-            background: #2d3748;
-        }
-
-        .registro-data {
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        body.dark .registro-data {
-            color: #60a5fa;
-        }
-
-        .sem-registros {
-            text-align: center;
-            padding: 30px;
-            color: #666;
-            font-size: 16px;
-        }
-
-        .btn-excluir-registro {
-            background: #dc2626;
-            color: white;
-            border: none;
-            padding: 4px 12px;
-            border-radius: 6px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 14px;
+            transition: all var(--transition);
+        }
+        .calendario-header button:hover { transform: scale(1.05); }
+
+        /* ===== BACKUP ===== */
+        .backup-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 15px 0;
         }
 
-        .btn-excluir-registro:hover {
-            background: #b91c1c;
-        }
+        /* ===== SCROLL ===== */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--secondary); }
     </style>
 </head>
 
 <body>
+<!-- ===== MENU LATERAL ===== -->
 <div class="menu" id="menu">
-    <a href="#" onclick="window.print()">🖨️ IMPRIMIR</a>
-    <a href="javascript:void(0)" onclick="toggle()">🌙 Modo escuro</a>
-    <a href="javascript:void(0)" onclick="salvarRegistro()">💾 Salvar Cálculo</a>
-    <a href="javascript:void(0)" onclick="abrirModalConsulta()">📋 Consultar Registros</a>
-    <a href="Escala12x36.html">📄 Escala 12x36</a>
-    <a href="wt-sistemas.html">💻 Desenvolvedor</a>
-    <img src="logo.png" class="logo">
-</div>
+    <div class="menu-header">
+        <img src="logo.png" alt="Logo" id="menuLogo">
+        <h2>GM</h2>
+    </div>
     
+    
+    <a href="javascript:void(0)" onclick="toggleTema()"><span class="icon">🌙</span> Modo escuro</a>
+    <a href="javascript:void(0)" onclick="abrirDashboard()"><span class="icon">📊</span> Dashboard</a>
+    <a href="javascript:void(0)" onclick="abrirCalendario()"><span class="icon">📅</span> Calendário</a>
+    <div class="divider"></div>
+    <a href="javascript:void(0)" onclick="salvarRegistro()"><span class="icon">💾</span> Salvar Cálculo</a>
+    <a href="javascript:void(0)" onclick="abrirModalConsulta()"><span class="icon">📋</span> Consultar Registros</a>
+    <a href="javascript:void(0)" onclick="importarCSV()"><span class="icon">📥</span> Importar CSV</a>
+    <a href="javascript:void(0)" onclick="exportarExcel()"><span class="icon">📊</span> Exportar Excel</a>
+    <div class="divider"></div>
+    <a href="javascript:void(0)" onclick="abrirConfiguracoes()"><span class="icon">⚙️</span> Configurações</a>
+    <a href="javascript:void(0)" onclick="abrirBackup()"><span class="icon">🔄</span> Backup</a>
+    <a href="javascript:void(0)" onclick="compartilharResultados()"><span class="icon">📤</span> Compartilhar</a>
+    <div class="divider"></div>
+    <a href="Escala12x36.html"><span class="icon">📄</span> Escala 12x36</a>
+    <a href="wt-sistemas.html"><span class="icon">💻</span> Desenvolvedor</a>
+</div>
+
+<!-- ===== CONTEÚDO PRINCIPAL ===== -->
 <div class="container">
     <div class="topo">
         <div class="topo-texto">
-            <h1> Sistema de Cálculo </br>de Ponto Individual </h1>
+            <h1>📊 Sistema de Cálculo de Ponto</h1>
+            <p>Controle individual de jornada • Horas extras •</p>
         </div>
-        <img src="icone.jpg" alt="Menu" class="menu-btn" onclick="abrirMenu()" id="icone">
+
+	<img src="icone.jpg" alt="Menu" class="menu-btn" onclick="abrirMenu()" id="icone">
     </div>
 
+    <!-- ===== TABELA ===== -->
     <div class="card">
         <table>
             <thead>
                 <tr>
-                    <th>Dia</th>
+                    <th style="width:45px;">Dia</th>
                     <th>Entrada</th>
-                    <th>Inicio Intervalo</th>
+                    <th>Início Intervalo</th>
                     <th>Fim Intervalo</th>
                     <th>Saída</th>
                     <th>Sábado</th>
@@ -444,373 +589,1462 @@
                     <th>Total Horas</th>
                     <th>Hora-Extra</th>
                     <th>Status</th>
+                    <th style="min-width:80px;">Nota</th>
                 </tr>
             </thead>
             <tbody id="tabelaBody">
-                <!-- JS gerará os dias aqui -->
+                <!-- JS gerará -->
             </tbody>
         </table>
-        <div class="botoes">
-            <button class="btn-calcular" onclick="calcularFolha()">📊 Calcular Resultados</button>
-            <button class="btn-limpar" onclick="limparFormulario()">🗑️ Limpar Campos</button>
-            <button class="btn-salvar" onclick="salvarRegistro()">💾 Salvar Cálculo</button>
-            <button class="btn-consultar" onclick="abrirModalConsulta()">📋 Consultar</button>
+        
+        <!-- BOTÕES RÁPIDOS -->
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px; flex-wrap: wrap;">
+            <button class="btn btn-info" style="padding: 8px 20px; font-size: 13px;" onclick="preencherHorarioPadrao()">⏰ Preencher Padrão</button>
+            <button class="btn btn-primary" style="padding: 8px 20px; font-size: 13px;" onclick="copiarHorarios()">📋 Copiar Horários</button>
+            <button class="btn btn-purple" style="padding: 8px 20px; font-size: 13px;" onclick="window.print()">🖨️ Imprimir</button>
+            <button class="btn btn-warning" style="padding: 8px 20px; font-size: 13px;" onclick="limparNotas()">🗑️ Limpar Notas</button>
         </div>
+
+        <div class="botoes">
+            <button class="btn btn-success" onclick="calcularFolha()">📊 Calcular Resultados</button>
+            <button class="btn btn-danger" onclick="limparFormulario()">🗑️ Limpar Campos</button>
+            <button class="btn btn-purple" onclick="salvarRegistro()">💾 Salvar Cálculo</button>
+            <button class="btn btn-info" onclick="abrirModalConsulta()">📋 Consultar</button>
+        </div>
+
+        <!-- ===== TOTAL BOX ===== -->
         <div class="total-box">
             <div class="box">
-                <h2>Total Horas (50%)</h2>
+                <h2>⏱️ Total Horas (50%)</h2>
                 <p id="totalExtras">00:00</p>
             </div>
             <div class="box">
-                <h2>Total Horas (100%)</h2>
+                <h2>🎯 Total Horas (100%)</h2>
                 <p id="totalFeriado">00:00</p>
+            </div>
+            <div class="box">
+                <h2>📊 Total de Dias</h2>
+                <p id="totalDias">0</p>
+            </div>
+            <div class="box">
+                <h2>⚡ Dias com Extra</h2>
+                <p id="diasExtra">0</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== DASHBOARD (oculto inicialmente) ===== -->
+    <div id="dashboardContainer" style="display:none; margin-top:20px;">
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <h3>📊 Distribuição de Horas Extras</h3>
+                <div class="chart-container">
+                    <canvas id="chartExtras"></canvas>
+                </div>
+            </div>
+            <div class="dashboard-card">
+                <h3>📈 Resumo do Mês</h3>
+                <div class="stats-grid" id="statsResumo">
+                    <div class="stat-item">
+                        <div class="number" id="statNormais">0</div>
+                        <div class="label">Dias Normais</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="number" id="statExtras">0</div>
+                        <div class="label">Dias com Extra</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="number" id="statFeriados">0</div>
+                        <div class="label">Feriados</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="number" id="statReduzidos">0</div>
+                        <div class="label">Jornada Reduzida</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal de Consulta -->
+<!-- ===== MODAL CONSULTA ===== -->
 <div id="modalConsulta" class="modal">
     <div class="modal-content">
-        <span class="close-modal" onclick="fecharModal()">&times;</span>
-        <h2 style="margin-bottom: 20px;">📋 Registros Salvos</h2>
+        <span class="close-modal" onclick="fecharModal('modalConsulta')">&times;</span>
+        <h2>📋 Registros Salvos</h2>
         <div id="listaRegistros"></div>
     </div>
 </div>
 
+<!-- ===== MODAL DASHBOARD ===== -->
+<div id="modalDashboard" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="fecharModal('modalDashboard')">&times;</span>
+        <h2>📊 Dashboard</h2>
+        <div id="dashboardContent"></div>
+    </div>
+</div>
+
+<!-- ===== MODAL CALENDÁRIO ===== -->
+<div id="modalCalendario" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="fecharModal('modalCalendario')">&times;</span>
+        <h2>📅 Calendário do Mês</h2>
+        <div id="calendarioContent"></div>
+    </div>
+</div>
+
+<!-- ===== MODAL CONFIGURAÇÕES ===== -->
+<div id="modalConfig" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="fecharModal('modalConfig')">&times;</span>
+        <h2>⚙️ Configurações</h2>
+        <div class="config-group">
+            <div class="config-item">
+                <label>⏱️ Jornada Diária (minutos)</label>
+                <input type="number" id="configJornada" value="480" min="1">
+                <small>Padrão: 480 min (8h)</small>
+            </div>
+            <div class="config-item">
+                <label>📅 Jornada Sábado (minutos)</label>
+                <input type="number" id="configSabado" value="240" min="0">
+                <small>Padrão: 240 min (4h)</small>
+            </div>
+            <div class="config-item">
+                <label>⏳ Tolerância (minutos)</label>
+                <input type="number" id="configTolerancia" value="15" min="0">
+                <small>Padrão: 15 min</small>
+            </div>
+            <div class="config-item">
+                <label>🚫 Limite Extra (minutos)</label>
+                <input type="number" id="configLimiteExtra" value="120" min="0">
+                <small>Padrão: 120 min (2h)</small>
+            </div>
+            <div class="config-item">
+                <label>🔒 Senha de Proteção</label>
+                <input type="password" id="configSenha" placeholder="Deixe em branco para desativar">
+                <small>Senha para acessar o sistema</small>
+            </div>
+            <div class="config-item">
+                <label>📱 Modo Mobile</label>
+                <select id="configMobile">
+                    <option value="auto">Automático</option>
+                    <option value="on">Sempre Ativo</option>
+                    <option value="off">Sempre Desktop</option>
+                </select>
+            </div>
+        </div>
+        <div style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap;">
+            <button class="btn btn-success" onclick="salvarConfiguracoes()">💾 Salvar Configurações</button>
+            <button class="btn btn-danger" onclick="resetarConfiguracoes()">↺ Restaurar Padrão</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL BACKUP ===== -->
+<div id="modalBackup" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="fecharModal('modalBackup')">&times;</span>
+        <h2>🔄 Backup e Restauração</h2>
+        <div class="backup-actions">
+            <button class="btn btn-success" onclick="fazerBackup()">📥 Fazer Backup</button>
+            <button class="btn btn-warning" onclick="document.getElementById('restoreInput').click()">📤 Restaurar Backup</button>
+            <input type="file" id="restoreInput" accept=".json" style="display:none" onchange="restaurarBackup(event)">
+            <button class="btn btn-danger" onclick="limparTodosDados()">🗑️ Limpar Todos os Dados</button>
+        </div>
+        <div id="backupInfo" style="margin-top:15px; padding:15px; background:var(--bg); border-radius:12px;">
+            <p>📦 Último backup: <span id="ultimoBackup">Nenhum</span></p>
+            <p>📊 Registros salvos: <span id="totalRegistros">0</span></p>
+        </div>
+    </div>
+</div>
+
 <script>
-    // ==================== MENU ====================
-    function abrirMenu() {
-        document.getElementById("menu").classList.toggle("ativo");
+// ================================================================
+// ==================== CONFIGURAÇÕES INICIAIS ====================
+// ================================================================
+
+let MINUTOS_DIA_SEMANA = parseInt(localStorage.getItem('configJornada')) || 480;
+let MINUTOS_SABADO = parseInt(localStorage.getItem('configSabado')) || 240;
+let TOLERANCIA_MINUTOS = parseInt(localStorage.getItem('configTolerancia')) || 15;
+let LIMITE_HORAS_EXTRAS = parseInt(localStorage.getItem('configLimiteExtra')) || 120;
+let SENHA_PROTECAO = localStorage.getItem('configSenha') || '';
+let MODO_MOBILE = localStorage.getItem('configMobile') || 'auto';
+
+let chartInstance = null;
+
+// ================================================================
+// ==================== TOAST ====================
+// ================================================================
+
+function mostrarToast(mensagem, tipo = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${tipo}`;
+    const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+    toast.innerHTML = `<span>${icons[tipo] || 'ℹ️'}</span> ${mensagem}`;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.5s';
+        setTimeout(() => toast.remove(), 500);
+    }, 3500);
+}
+
+// ================================================================
+// ==================== MENU ====================
+// ================================================================
+
+function abrirMenu() {
+    document.getElementById("menu").classList.toggle("ativo");
+}
+
+document.addEventListener('click', function(event) {
+    const menu = document.getElementById('menu');
+    const btn = document.getElementById('icone');
+    if (!menu.contains(event.target) && !btn.contains(event.target)) {
+        menu.classList.remove('ativo');
+    }
+});
+
+// ================================================================
+// ==================== TEMA ====================
+// ================================================================
+
+function toggleTema() {
+    document.body.classList.toggle("dark");
+    const tema = document.body.classList.contains("dark") ? "dark" : "light";
+    localStorage.setItem("tema", tema);
+    mostrarToast(tema === 'dark' ? '🌙 Modo escuro ativado' : '☀️ Modo claro ativado', 'info');
+}
+
+// ================================================================
+// ==================== INICIALIZAÇÃO ====================
+// ================================================================
+
+window.onload = function() {
+    if (localStorage.getItem("tema") === "dark") {
+        document.body.classList.add("dark");
+    }
+    // Verifica senha
+    if (SENHA_PROTECAO) {
+        const senha = prompt('🔒 Digite a senha para acessar o sistema:');
+        if (senha !== SENHA_PROTECAO) {
+            document.body.innerHTML = `
+                <div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:20px;background:#0f172a;color:white;">
+                    <h1>🔒 Acesso Bloqueado</h1>
+                    <p>Senha incorreta. Recarregue a página para tentar novamente.</p>
+                </div>
+            `;
+            return;
+        }
+    }
+    gerarTabela();
+    configurarBackupAuto();
+    configurarEventosTempoReal();
+    carregarBackup();
+    aplicarConfigMobile();
+    atualizarStatsResumo();
+};
+
+// ================================================================
+// ==================== GERAR TABELA ====================
+// ================================================================
+
+function gerarTabela() {
+    const tabela = document.getElementById("tabelaBody");
+    tabela.innerHTML = '';
+    for(let i = 1; i <= 31; i++){
+        tabela.innerHTML += `
+            <tr id="dia-${i}">
+                <td><strong>${String(i).padStart(2, '0')}</strong></td>
+                <td><input type="time" class="entrada" data-dia="${i}"></td>
+                <td><input type="time" class="saidaAlmoco" data-dia="${i}"></td>
+                <td><input type="time" class="voltaAlmoco" data-dia="${i}"></td>
+                <td><input type="time" class="saida" data-dia="${i}"></td>
+                <td><input type="checkbox" class="isSabado" onchange="marcarLinha(${i})"></td>
+                <td><input type="checkbox" class="feriado" onchange="marcarLinha(${i})"></td>
+                <td class="total-dia">00:00</td>
+                <td class="extra-dia">00:00</td>
+                <td class="status-dia">-</td>
+                <td><input type="text" class="nota-dia" placeholder="Obs..." style="width:70px;font-size:11px;padding:4px;"></td>
+            </tr>
+        `;
+    }
+}
+
+// ================================================================
+// ==================== FUNÇÕES AUXILIARES ====================
+// ================================================================
+
+function hToM(horario) {
+    if (!horario) return null;
+    const [h, m] = horario.split(':').map(Number);
+    return (h * 60) + m;
+}
+
+function mToH(minutos) {
+    const negativo = minutos < 0;
+    const abs = Math.abs(minutos);
+    const h = Math.floor(abs / 60);
+    const m = Math.round(abs % 60);
+    return `${negativo ? '-' : ''}${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+function calcularDiferenca(inicio, fim) {
+    if (inicio === null || fim === null) return 0;
+    let diff = fim - inicio;
+    if (diff < 0) diff += 1440;
+    return diff;
+}
+
+function marcarLinha(index) {
+    const linha = document.getElementById(`dia-${index}`);
+    if (!linha) return;
+    const isSab = linha.querySelector(".isSabado").checked;
+    const isFer = linha.querySelector(".feriado").checked;
+    linha.classList.remove("feriado-row", "sabado-row");
+    if (isFer) linha.classList.add("feriado-row");
+    else if (isSab) linha.classList.add("sabado-row");
+}
+
+// ================================================================
+// ==================== CÁLCULO DA LINHA (TEMPO REAL) ====================
+// ================================================================
+
+function calcularLinha(linha) {
+    const v = (classe) => linha.querySelector(classe)?.value || '';
+    const c = (classe) => linha.querySelector(classe)?.checked || false;
+
+    const tEntrada = hToM(v(".entrada"));
+    const tSaidaAlm = hToM(v(".saidaAlmoco"));
+    const tVoltaAlm = hToM(v(".voltaAlmoco"));
+    const tSaidaFin = hToM(v(".saida"));
+    
+    const isSabado = c(".isSabado");
+    const isFeriado = c(".feriado");
+
+    const displayTotal = linha.querySelector(".total-dia");
+    const displayExtra = linha.querySelector(".extra-dia");
+    const displayStatus = linha.querySelector(".status-dia");
+
+    let totalMinutos = 0;
+    let extraMinutos = 0;
+    let status = '-';
+
+    if (tEntrada !== null && tSaidaFin !== null) {
+        if (tSaidaAlm !== null && tVoltaAlm !== null) {
+            totalMinutos = calcularDiferenca(tEntrada, tSaidaAlm) + calcularDiferenca(tVoltaAlm, tSaidaFin);
+        } else {
+            totalMinutos = calcularDiferenca(tEntrada, tSaidaFin);
+        }
+
+        displayTotal.innerText = mToH(totalMinutos);
+
+        const jornadaObrigatoria = isFeriado ? 0 : (isSabado ? MINUTOS_SABADO : MINUTOS_DIA_SEMANA);
+        
+        if (isFeriado) {
+            extraMinutos = totalMinutos;
+            displayExtra.innerText = mToH(totalMinutos);
+            displayExtra.className = "extra-dia extra";
+            status = '100%';
+            displayStatus.innerHTML = `<span class="status-tag bg-feriado">💯 100%</span>`;
+            aplicarCoresInteligentes(linha, extraMinutos, totalMinutos, jornadaObrigatoria);
+        } else {
+            if (totalMinutos > (jornadaObrigatoria + TOLERANCIA_MINUTOS)) {
+                extraMinutos = totalMinutos - jornadaObrigatoria;
+                if (extraMinutos > LIMITE_HORAS_EXTRAS) {
+                    mostrarToast(`⚠️ Dia ${linha.id.replace('dia-', '')}: Excedeu limite de 2h extras`, 'warning');
+                }
+                displayExtra.innerText = mToH(extraMinutos);
+                displayExtra.className = "extra-dia extra";
+                status = 'Extra';
+                displayStatus.innerHTML = `<span class="status-tag bg-extra">✅Extra</span>`;
+                aplicarCoresInteligentes(linha, extraMinutos, totalMinutos, jornadaObrigatoria);
+            } else {
+                displayExtra.innerText = "00:00";
+                displayExtra.className = "extra-dia normal";
+                status = 'Normal';
+                displayStatus.innerHTML = `<span class="status-tag bg-normal">☑️ Normal</span>`;
+                aplicarCoresInteligentes(linha, 0, totalMinutos, jornadaObrigatoria);
+            }
+        }
     }
 
-    // Fecha menu ao clicar fora
-    document.addEventListener('click', function(event) {
-        const menu = document.getElementById('menu');
-        const btn = document.getElementById('icone');
-        if (!menu.contains(event.target) && !btn.contains(event.target)) {
-            menu.classList.remove('ativo');
+    return { totalMinutos, extraMinutos, isFeriado };
+}
+
+function aplicarCoresInteligentes(linha, extraMinutos, totalMinutos, jornadaObrigatoria) {
+    linha.classList.remove('extra-positiva', 'extra-negativa', 'jornada-reduzida');
+    if (extraMinutos > 0) {
+        linha.classList.add('extra-positiva');
+    } else if (totalMinutos > 0 && totalMinutos < (jornadaObrigatoria - TOLERANCIA_MINUTOS)) {
+        linha.classList.add('jornada-reduzida');
+    }
+}
+
+// ================================================================
+// ==================== EVENTOS EM TEMPO REAL ====================
+// ================================================================
+
+function configurarEventosTempoReal() {
+    document.addEventListener('input', function(e) {
+        if (e.target.closest('input[type="time"]') || e.target.closest('.nota-dia')) {
+            const linha = e.target.closest('tr');
+            if (linha) {
+                calcularLinha(linha);
+                salvarBackupAuto();
+                atualizarStatsResumo();
+            }
         }
     });
 
-    // ==================== TEMA ESCURO ====================
-    function toggle() {
-        document.body.classList.toggle("dark");
-        if (document.body.classList.contains("dark")) {
-            localStorage.setItem("tema", "dark");
-        } else {
-            localStorage.setItem("tema", "light");
+    document.addEventListener('change', function(e) {
+        if (e.target.closest('input[type="checkbox"]')) {
+            const linha = e.target.closest('tr');
+            if (linha) {
+                calcularLinha(linha);
+                salvarBackupAuto();
+                atualizarStatsResumo();
+            }
+        }
+    });
+}
+
+// ================================================================
+// ==================== BACKUP AUTOMÁTICO ====================
+// ================================================================
+
+function configurarBackupAuto() {
+    setInterval(salvarBackupAuto, 30000);
+}
+
+function salvarBackupAuto() {
+    const dados = coletarDadosTabela();
+    if (dados && dados.some(d => d.entrada || d.saida)) {
+        localStorage.setItem('backup_ponto', JSON.stringify(dados));
+    }
+}
+
+function coletarDadosTabela() {
+    const linhas = document.querySelectorAll("#tabelaBody tr");
+    const dados = [];
+    linhas.forEach(linha => {
+        const v = (classe) => linha.querySelector(classe)?.value || '';
+        const c = (classe) => linha.querySelector(classe)?.checked || false;
+        dados.push({
+            entrada: v(".entrada"),
+            saidaAlmoco: v(".saidaAlmoco"),
+            voltaAlmoco: v(".voltaAlmoco"),
+            saida: v(".saida"),
+            isSabado: c(".isSabado"),
+            isFeriado: c(".feriado"),
+            nota: v(".nota-dia")
+        });
+    });
+    return dados;
+}
+
+function carregarBackup() {
+    const backup = localStorage.getItem('backup_ponto');
+    if (backup) {
+        try {
+            const dados = JSON.parse(backup);
+            const linhas = document.querySelectorAll("#tabelaBody tr");
+            linhas.forEach((linha, index) => {
+                if (dados[index]) {
+                    const d = dados[index];
+                    linha.querySelector(".entrada").value = d.entrada || '';
+                    linha.querySelector(".saidaAlmoco").value = d.saidaAlmoco || '';
+                    linha.querySelector(".voltaAlmoco").value = d.voltaAlmoco || '';
+                    linha.querySelector(".saida").value = d.saida || '';
+                    linha.querySelector(".isSabado").checked = d.isSabado || false;
+                    linha.querySelector(".feriado").checked = d.isFeriado || false;
+                    if (linha.querySelector(".nota-dia")) {
+                        linha.querySelector(".nota-dia").value = d.nota || '';
+                    }
+                    calcularLinha(linha);
+                }
+            });
+            marcarTodasLinhas();
+        } catch (e) { console.log('Erro ao carregar backup'); }
+    }
+}
+
+function marcarTodasLinhas() {
+    for(let i = 1; i <= 31; i++) {
+        const linha = document.getElementById(`dia-${i}`);
+        if (linha) {
+            const isSab = linha.querySelector(".isSabado").checked;
+            const isFer = linha.querySelector(".feriado").checked;
+            linha.classList.remove("feriado-row", "sabado-row");
+            if (isFer) linha.classList.add("feriado-row");
+            else if (isSab) linha.classList.add("sabado-row");
         }
     }
+}
 
-    window.onload = function () {
-        if (localStorage.getItem("tema") === "dark") {
-            document.body.classList.add("dark");
+// ================================================================
+// ==================== PREENCHER PADRÃO ====================
+// ================================================================
+
+function preencherHorarioPadrao() {
+    const entrada = prompt('Digite o horário de entrada padrão (HH:MM):', '08:00');
+    if (!entrada) return;
+    const saidaAlmoco = prompt('Digite o horário de início do intervalo (HH:MM):', '12:00');
+    if (!saidaAlmoco) return;
+    const voltaAlmoco = prompt('Digite o horário de volta do intervalo (HH:MM):', '13:00');
+    if (!voltaAlmoco) return;
+    const saida = prompt('Digite o horário de saída padrão (HH:MM):', '17:00');
+    if (!saida) return;
+
+    const linhas = document.querySelectorAll("#tabelaBody tr");
+    linhas.forEach(linha => {
+        const isSabado = linha.querySelector(".isSabado").checked;
+        const isFeriado = linha.querySelector(".feriado").checked;
+        if (!isSabado && !isFeriado) {
+            linha.querySelector(".entrada").value = entrada;
+            linha.querySelector(".saidaAlmoco").value = saidaAlmoco;
+            linha.querySelector(".voltaAlmoco").value = voltaAlmoco;
+            linha.querySelector(".saida").value = saida;
+            calcularLinha(linha);
         }
-        gerarTabela();
+    });
+    mostrarToast('✅ Horários padrão preenchidos!', 'success');
+    atualizarStatsResumo();
+}
+
+// ================================================================
+// ==================== COPIAR HORÁRIOS ====================
+// ================================================================
+
+function copiarHorarios() {
+    const dia = prompt('Digite o número do dia para copiar (1-31):', '1');
+    if (!dia) return;
+    const numDia = parseInt(dia);
+    if (numDia < 1 || numDia > 31) {
+        mostrarToast('⚠️ Dia inválido!', 'error');
+        return;
+    }
+
+    const linhaOrigem = document.getElementById(`dia-${numDia}`);
+    if (!linhaOrigem) {
+        mostrarToast('⚠️ Dia não encontrado!', 'error');
+        return;
+    }
+
+    const entrada = linhaOrigem.querySelector(".entrada").value;
+    const saidaAlmoco = linhaOrigem.querySelector(".saidaAlmoco").value;
+    const voltaAlmoco = linhaOrigem.querySelector(".voltaAlmoco").value;
+    const saida = linhaOrigem.querySelector(".saida").value;
+    const nota = linhaOrigem.querySelector(".nota-dia")?.value || '';
+
+    if (!entrada && !saida) {
+        mostrarToast('⚠️ Este dia não tem horários para copiar!', 'warning');
+        return;
+    }
+
+    const linhas = document.querySelectorAll("#tabelaBody tr");
+    let copiados = 0;
+    linhas.forEach(linha => {
+        const isFer = linha.querySelector(".feriado").checked;
+        const isSab = linha.querySelector(".isSabado").checked;
+        if (!isFer && !isSab) {
+            linha.querySelector(".entrada").value = entrada;
+            linha.querySelector(".saidaAlmoco").value = saidaAlmoco;
+            linha.querySelector(".voltaAlmoco").value = voltaAlmoco;
+            linha.querySelector(".saida").value = saida;
+            if (linha.querySelector(".nota-dia")) {
+                linha.querySelector(".nota-dia").value = nota;
+            }
+            calcularLinha(linha);
+            copiados++;
+        }
+    });
+    mostrarToast(`✅ Horários copiados para ${copiados} dias!`, 'success');
+    atualizarStatsResumo();
+}
+
+// ================================================================
+// ==================== LIMPAR NOTAS ====================
+// ================================================================
+
+function limparNotas() {
+    if (!confirm('Tem certeza que deseja limpar todas as notas?')) return;
+    document.querySelectorAll(".nota-dia").forEach(input => input.value = '');
+    mostrarToast('🗑️ Notas limpas!', 'info');
+}
+
+// ================================================================
+// ==================== LIMPAR FORMULÁRIO ====================
+// ================================================================
+
+function limparFormulario() {
+    if (!confirm("Tem certeza que deseja limpar todos os dados?")) return;
+
+    const linhas = document.querySelectorAll("#tabelaBody tr");
+    linhas.forEach(linha => {
+        linha.querySelectorAll("input[type='time']").forEach(input => input.value = "");
+        linha.querySelectorAll("input[type='checkbox']").forEach(cb => cb.checked = false);
+        if (linha.querySelector(".nota-dia")) linha.querySelector(".nota-dia").value = "";
+        linha.querySelector(".total-dia").innerText = "00:00";
+        linha.querySelector(".extra-dia").innerText = "00:00";
+        linha.querySelector(".status-dia").innerHTML = "-";
+        linha.classList.remove("feriado-row", "sabado-row", "extra-positiva", "extra-negativa", "jornada-reduzida");
+    });
+
+    document.getElementById("totalExtras").innerText = "00:00";
+    document.getElementById("totalFeriado").innerText = "00:00";
+    document.getElementById("totalDias").innerText = "0";
+    document.getElementById("diasExtra").innerText = "0";
+    localStorage.removeItem('backup_ponto');
+    mostrarToast('🗑️ Dados limpos com sucesso!', 'info');
+    atualizarStatsResumo();
+}
+
+// ================================================================
+// ==================== CALCULAR FOLHA ====================
+// ================================================================
+
+function calcularFolha() {
+    const linhas = document.querySelectorAll("#tabelaBody tr");
+    let somaExtras = 0;
+    let somaFeriados = 0;
+    let totalDias = 0;
+    let diasExtra = 0;
+    let dadosLinhas = [];
+
+    linhas.forEach((linha, index) => {
+        const resultado = calcularLinha(linha);
+        if (resultado) {
+            const { totalMinutos, extraMinutos, isFeriado } = resultado;
+            if (totalMinutos > 0) totalDias++;
+            if (isFeriado) {
+                somaFeriados += totalMinutos;
+            } else {
+                somaExtras += extraMinutos;
+                if (extraMinutos > 0) diasExtra++;
+            }
+        }
+
+        const v = (classe) => linha.querySelector(classe)?.value || '';
+        const c = (classe) => linha.querySelector(classe)?.checked || false;
+        const nota = linha.querySelector(".nota-dia")?.value || '';
+        dadosLinhas.push({
+            dia: index + 1,
+            entrada: v(".entrada"),
+            saidaAlmoco: v(".saidaAlmoco"),
+            voltaAlmoco: v(".voltaAlmoco"),
+            saida: v(".saida"),
+            isSabado: c(".isSabado"),
+            isFeriado: c(".feriado"),
+            total: linha.querySelector(".total-dia").innerText,
+            extra: linha.querySelector(".extra-dia").innerText,
+            status: linha.querySelector(".status-dia").innerText,
+            nota: nota
+        });
+    });
+
+    document.getElementById("totalExtras").innerText = mToH(somaExtras);
+    document.getElementById("totalFeriado").innerText = mToH(somaFeriados);
+    document.getElementById("totalDias").innerText = totalDias;
+    document.getElementById("diasExtra").innerText = diasExtra;
+
+    window.dadosCalculados = {
+        linhas: dadosLinhas,
+        totalExtras: mToH(somaExtras),
+        totalFeriado: mToH(somaFeriados),
+        totalDias: totalDias,
+        diasExtra: diasExtra,
+        data: new Date().toLocaleString()
     };
 
-    // ==================== GERAR TABELA ====================
-    function gerarTabela() {
-        const tabela = document.getElementById("tabelaBody");
-        tabela.innerHTML = '';
-        for(let i = 1; i <= 31; i++){
-            tabela.innerHTML += `
-                <tr id="dia-${i}">
-                    <td><strong>${String(i).padStart(2, '0')}</strong></td>
-                    <td><input type="time" class="entrada"></td>
-                    <td><input type="time" class="saidaAlmoco"></td>
-                    <td><input type="time" class="voltaAlmoco"></td>
-                    <td><input type="time" class="saida"></td>
-                    <td><input type="checkbox" class="isSabado" onchange="marcarLinha(${i})"></td>
-                    <td><input type="checkbox" class="feriado" onchange="marcarLinha(${i})"></td>
-                    <td class="total-dia">00:00</td>
-                    <td class="extra-dia">00:00</td>
-                    <td class="status-dia">-</td>
-                </tr>
-            `;
+    mostrarToast('✅ Cálculo concluído!', 'success');
+    atualizarStatsResumo();
+    if (document.getElementById('dashboardContainer').style.display !== 'none') {
+        gerarDashboard();
+    }
+}
+
+// ================================================================
+// ==================== ATUALIZAR STATS RESUMO ====================
+// ================================================================
+
+function atualizarStatsResumo() {
+    const linhas = document.querySelectorAll("#tabelaBody tr");
+    let normais = 0, extras = 0, feriados = 0, reduzidos = 0;
+    
+    linhas.forEach(linha => {
+        const total = linha.querySelector(".total-dia")?.innerText || '00:00';
+        const status = linha.querySelector(".status-dia")?.innerText || '';
+        const isFer = linha.querySelector(".feriado")?.checked || false;
+        const isSab = linha.querySelector(".isSabado")?.checked || false;
+        
+        if (total !== '00:00') {
+            if (isFer) feriados++;
+            else if (status.includes('Extra')) extras++;
+            else if (status.includes('Normal')) normais++;
+            else reduzidos++;
         }
-    }
+    });
+    
+    document.getElementById('statNormais').textContent = normais;
+    document.getElementById('statExtras').textContent = extras;
+    document.getElementById('statFeriados').textContent = feriados;
+    document.getElementById('statReduzidos').textContent = reduzidos;
+}
 
-    // ==================== FUNÇÕES DE CÁLCULO ====================
-    const MINUTOS_DIA_SEMANA = 480;
-    const MINUTOS_SABADO = 240;
-    const TOLERANCIA_MINUTOS = 15;
+// ================================================================
+// ==================== DASHBOARD ====================
+// ================================================================
 
-    function hToM(horario) {
-        if (!horario) return null;
-        const [h, m] = horario.split(':').map(Number);
-        return (h * 60) + m;
-    }
+function abrirDashboard() {
+    const modal = document.getElementById('modalDashboard');
+    modal.style.display = 'block';
+    gerarDashboard();
+}
 
-    function mToH(minutos) {
-        const h = Math.floor(Math.abs(minutos) / 60);
-        const m = Math.abs(minutos) % 60;
-        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-    }
+function gerarDashboard() {
+    const container = document.getElementById('dashboardContent');
+    
+    // Coleta dados
+    const linhas = document.querySelectorAll("#tabelaBody tr");
+    const dias = [];
+    const extras = [];
+    const totais = [];
+    let totalExtra = 0;
+    let totalFeriado = 0;
+    let diasComExtra = 0;
+    let diasNormais = 0;
+    let diasFeriados = 0;
 
-    function calcularDiferenca(inicio, fim) {
-        if (inicio === null || fim === null) return 0;
-        let diff = fim - inicio;
-        if (diff < 0) diff += 1440;
-        return diff;
-    }
-
-    function marcarLinha(index) {
-        const linha = document.getElementById(`dia-${index}`);
-        const isSab = linha.querySelector(".isSabado").checked;
-        const isFer = linha.querySelector(".feriado").checked;
-        linha.classList.remove("feriado-row", "sabado-row");
-        if (isFer) linha.classList.add("feriado-row");
-        else if (isSab) linha.classList.add("sabado-row");
-    }
-
-    function limparFormulario() {
-        const confirmar = confirm("Tem certeza que deseja limpar todos os dados?");
-        if (!confirmar) return;
-
-        const linhas = document.querySelectorAll("#tabelaBody tr");
-        linhas.forEach(linha => {
-            linha.querySelectorAll("input[type='time']").forEach(input => {
-                input.value = "";
-            });
-            linha.querySelectorAll("input[type='checkbox']").forEach(cb => {
-                cb.checked = false;
-            });
-            linha.querySelector(".total-dia").innerText = "00:00";
-            linha.querySelector(".extra-dia").innerText = "00:00";
-            linha.querySelector(".status-dia").innerText = "-";
-            linha.classList.remove("feriado-row", "sabado-row");
-        });
-
-        document.getElementById("totalExtras").innerText = "00:00";
-        document.getElementById("totalFeriado").innerText = "00:00";
-    }
-
-    function calcularFolha() {
-        const linhas = document.querySelectorAll("#tabelaBody tr");
-        let somaExtras = 0;
-        let somaFeriados = 0;
-        let dadosLinhas = [];
-
-        linhas.forEach((linha, index) => {
-            const v = (classe) => linha.querySelector(classe).value;
-            const c = (classe) => linha.querySelector(classe).checked;
-
-            const tEntrada = hToM(v(".entrada"));
-            const tSaidaAlm = hToM(v(".saidaAlmoco"));
-            const tVoltaAlm = hToM(v(".voltaAlmoco"));
-            const tSaidaFin = hToM(v(".saida"));
+    linhas.forEach((linha, index) => {
+        const dia = index + 1;
+        const isFer = linha.querySelector(".feriado")?.checked || false;
+        const total = linha.querySelector(".total-dia")?.innerText || '00:00';
+        const extra = linha.querySelector(".extra-dia")?.innerText || '00:00';
+        const status = linha.querySelector(".status-dia")?.innerText || '';
+        
+        if (total !== '00:00') {
+            dias.push(dia);
+            totais.push(total);
             
-            const isSabado = c(".isSabado");
-            const isFeriado = c(".feriado");
-
-            const displayTotal = linha.querySelector(".total-dia");
-            const displayExtra = linha.querySelector(".extra-dia");
-            const displayStatus = linha.querySelector(".status-dia");
-
-            let totalMinutos = 0;
-            let extraMinutos = 0;
-            let status = '-';
-
-            if (tEntrada !== null && tSaidaFin !== null) {
-                if (tSaidaAlm !== null && tVoltaAlm !== null) {
-                    totalMinutos = calcularDiferenca(tEntrada, tSaidaAlm) + calcularDiferenca(tVoltaAlm, tSaidaFin);
+            if (isFer) {
+                diasFeriados++;
+                const min = hToM(total) || 0;
+                totalFeriado += min;
+                extras.push(total);
+            } else {
+                const min = hToM(extra) || 0;
+                if (min > 0) {
+                    diasComExtra++;
+                    totalExtra += min;
                 } else {
-                    totalMinutos = calcularDiferenca(tEntrada, tSaidaFin);
+                    diasNormais++;
                 }
+                extras.push(extra);
+            }
+        }
+    });
 
-                displayTotal.innerText = mToH(totalMinutos);
-
-                const jornadaObrigatoria = isFeriado ? 0 : (isSabado ? MINUTOS_SABADO : MINUTOS_DIA_SEMANA);
-                
-                if (isFeriado) {
-                    somaFeriados += totalMinutos;
-                    extraMinutos = totalMinutos;
-                    displayExtra.innerText = mToH(totalMinutos);
-                    displayExtra.className = "extra-dia extra";
-                    status = '100%';
-                    displayStatus.innerHTML = `<span class="status-tag bg-feriado">hora 100%</span>`;
-                } else {
-                    if (totalMinutos > (jornadaObrigatoria + TOLERANCIA_MINUTOS)) {
-                        extraMinutos = totalMinutos - jornadaObrigatoria;
-                        somaExtras += extraMinutos;
-                        displayExtra.innerText = mToH(extraMinutos);
-                        displayExtra.className = "extra-dia extra";
-                        status = 'Extra';
-                        displayStatus.innerHTML = `<span class="status-tag bg-extra">Hora Extra</span>`;
-                    } else {
-                        displayExtra.innerText = "00:00";
-                        displayExtra.className = "extra-dia normal";
-                        status = 'Normal';
-                        displayStatus.innerHTML = `<span class="status-tag bg-normal">Normal</span>`;
+    let html = `
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <h3>📊 Distribuição de Horas Extras</h3>
+                <div class="chart-container">
+                    <canvas id="chartExtrasModal"></canvas>
+                </div>
+            </div>
+            <div class="dashboard-card">
+                <h3>📈 Resumo do Mês</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="number">${diasNormais}</div>
+                        <div class="label">Dias Normais</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="number">${diasComExtra}</div>
+                        <div class="label">Dias com Extra</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="number">${diasFeriados}</div>
+                        <div class="label">Feriados</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="number">${mToH(totalExtra)}</div>
+                        <div class="label">Total Extra 50%</div>
+                    </div>
+                    <div class="stat-item" style="grid-column: span 2;">
+                        <div class="number">${mToH(totalFeriado)}</div>
+                        <div class="label">Total Extra 100% (Feriados)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="dashboard-card" style="margin-top:20px;">
+            <h3>📋 Detalhamento por Dia</h3>
+            <div style="overflow-x:auto;max-height:300px;">
+                <table style="min-width:auto;font-size:13px;">
+                    <thead>
+                        <tr><th>Dia</th><th>Total</th><th>Extra</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+    `;
+    
+    linhas.forEach((linha, index) => {
+        const dia = index + 1;
+        const total = linha.querySelector(".total-dia")?.innerText || '00:00';
+        const extra = linha.querySelector(".extra-dia")?.innerText || '00:00';
+        const status = linha.querySelector(".status-dia")?.innerHTML || '-';
+        if (total !== '00:00') {
+            html += `<tr><td>${String(dia).padStart(2,'0')}</td><td>${total}</td><td>${extra}</td><td>${status}</td></tr>`;
+        }
+    });
+    
+    html += `
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+    
+    // Cria gráfico após renderizar
+    setTimeout(() => {
+        const ctx = document.getElementById('chartExtrasModal');
+        if (ctx) {
+            // Destroi gráfico anterior se existir
+            if (window.chartModalInstance) {
+                window.chartModalInstance.destroy();
+            }
+            
+            const labels = dias.map(d => String(d).padStart(2,'0'));
+            const data = extras.map(e => {
+                const min = hToM(e) || 0;
+                return Math.round(min / 60 * 100) / 100;
+            });
+            
+            window.chartModalInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Horas Extras (h)',
+                        data: data,
+                        backgroundColor: data.map(v => v > 0 ? '#16a34a' : '#94a3b8'),
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Horas' }
+                        }
                     }
                 }
-            }
-
-            // Salva dados da linha para registro
-            dadosLinhas.push({
-                dia: index + 1,
-                entrada: v(".entrada") || '',
-                saidaAlmoco: v(".saidaAlmoco") || '',
-                voltaAlmoco: v(".voltaAlmoco") || '',
-                saida: v(".saida") || '',
-                isSabado: isSabado,
-                isFeriado: isFeriado,
-                total: mToH(totalMinutos),
-                extra: mToH(extraMinutos),
-                status: status
             });
+        }
+    }, 100);
+}
+
+// ================================================================
+// ==================== CALENDÁRIO ====================
+// ================================================================
+
+function abrirCalendario() {
+    const modal = document.getElementById('modalCalendario');
+    modal.style.display = 'block';
+    gerarCalendario();
+}
+
+function gerarCalendario() {
+    const container = document.getElementById('calendarioContent');
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = hoje.getMonth();
+    
+    const primeiroDia = new Date(ano, mes, 1).getDay();
+    const diasNoMes = new Date(ano, mes + 1, 0).getDate();
+    
+    const nomesDias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    
+    let html = `
+        <div class="calendario-header">
+            <span style="font-size:18px;font-weight:600;">${new Date(ano, mes).toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}</span>
+            <div>
+                <button onclick="mudarMes(-1)">◀</button>
+                <button onclick="mudarMes(1)">▶</button>
+            </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:10px;text-align:center;font-weight:600;font-size:12px;color:#64748b;">
+            ${nomesDias.map(d => `<span>${d}</span>`).join('')}
+        </div>
+        <div class="calendario-grid">
+    `;
+    
+    // Dias vazios antes do primeiro dia
+    for (let i = 0; i < primeiroDia; i++) {
+        html += `<div class="dia-cal vazio"></div>`;
+    }
+    
+    // Dias do mês
+    for (let d = 1; d <= diasNoMes; d++) {
+        const linha = document.getElementById(`dia-${d}`);
+        let classe = 'dia-cal';
+        let sub = '';
+        
+        if (linha) {
+            const isFer = linha.querySelector(".feriado")?.checked || false;
+            const status = linha.querySelector(".status-dia")?.innerText || '';
+            const total = linha.querySelector(".total-dia")?.innerText || '00:00';
+            
+            if (isFer) {
+                classe += ' feriado';
+                sub = 'Feriado';
+            } else if (status.includes('Extra')) {
+                classe += ' extra';
+                sub = 'Extra';
+            } else if (total !== '00:00') {
+                classe += ' normal';
+                sub = total;
+            }
+        }
+        
+        html += `<div class="${classe}"><span class="num">${d}</span><span class="sub">${sub}</span></div>`;
+    }
+    
+    html += `</div>`;
+    html += `
+        <div style="margin-top:15px;display:flex;gap:15px;flex-wrap:wrap;font-size:13px;">
+            <span><span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:#dbeafe;vertical-align:middle;margin-right:4px;"></span> Normal</span>
+            <span><span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:#dcfce7;vertical-align:middle;margin-right:4px;"></span> Extra</span>
+            <span><span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:#fef3c7;vertical-align:middle;margin-right:4px;"></span> Feriado</span>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+let calendarioOffset = 0;
+
+function mudarMes(delta) {
+    calendarioOffset += delta;
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = hoje.getMonth() + calendarioOffset;
+    // Recria o calendário com o mês alterado
+    const container = document.getElementById('calendarioContent');
+    const novoMes = new Date(ano, mes);
+    const primeiroDia = new Date(novoMes.getFullYear(), novoMes.getMonth(), 1).getDay();
+    const diasNoMes = new Date(novoMes.getFullYear(), novoMes.getMonth() + 1, 0).getDate();
+    const nomesDias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    
+    let html = `
+        <div class="calendario-header">
+            <span style="font-size:18px;font-weight:600;">${novoMes.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}</span>
+            <div>
+                <button onclick="mudarMes(-1)">◀</button>
+                <button onclick="mudarMes(1)">▶</button>
+            </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:10px;text-align:center;font-weight:600;font-size:12px;color:#64748b;">
+            ${nomesDias.map(d => `<span>${d}</span>`).join('')}
+        </div>
+        <div class="calendario-grid">
+    `;
+    
+    for (let i = 0; i < primeiroDia; i++) {
+        html += `<div class="dia-cal vazio"></div>`;
+    }
+    
+    for (let d = 1; d <= diasNoMes; d++) {
+        const linha = document.getElementById(`dia-${d}`);
+        let classe = 'dia-cal';
+        let sub = '';
+        
+        if (linha) {
+            const isFer = linha.querySelector(".feriado")?.checked || false;
+            const status = linha.querySelector(".status-dia")?.innerText || '';
+            const total = linha.querySelector(".total-dia")?.innerText || '00:00';
+            
+            if (isFer) {
+                classe += ' feriado';
+                sub = 'Feriado';
+            } else if (status.includes('Extra')) {
+                classe += ' extra';
+                sub = 'Extra';
+            } else if (total !== '00:00') {
+                classe += ' normal';
+                sub = total;
+            }
+        }
+        
+        html += `<div class="${classe}"><span class="num">${d}</span><span class="sub">${sub}</span></div>`;
+    }
+    
+    html += `</div>`;
+    html += `
+        <div style="margin-top:15px;display:flex;gap:15px;flex-wrap:wrap;font-size:13px;">
+            <span><span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:#dbeafe;vertical-align:middle;margin-right:4px;"></span> Normal</span>
+            <span><span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:#dcfce7;vertical-align:middle;margin-right:4px;"></span> Extra</span>
+            <span><span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:#fef3c7;vertical-align:middle;margin-right:4px;"></span> Feriado</span>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+// ================================================================
+// ==================== CONFIGURAÇÕES ====================
+// ================================================================
+
+function abrirConfiguracoes() {
+    document.getElementById('modalConfig').style.display = 'block';
+    document.getElementById('configJornada').value = MINUTOS_DIA_SEMANA;
+    document.getElementById('configSabado').value = MINUTOS_SABADO;
+    document.getElementById('configTolerancia').value = TOLERANCIA_MINUTOS;
+    document.getElementById('configLimiteExtra').value = LIMITE_HORAS_EXTRAS;
+    document.getElementById('configSenha').value = SENHA_PROTECAO;
+    document.getElementById('configMobile').value = MODO_MOBILE;
+}
+
+function salvarConfiguracoes() {
+    MINUTOS_DIA_SEMANA = parseInt(document.getElementById('configJornada').value) || 480;
+    MINUTOS_SABADO = parseInt(document.getElementById('configSabado').value) || 240;
+    TOLERANCIA_MINUTOS = parseInt(document.getElementById('configTolerancia').value) || 15;
+    LIMITE_HORAS_EXTRAS = parseInt(document.getElementById('configLimiteExtra').value) || 120;
+    SENHA_PROTECAO = document.getElementById('configSenha').value || '';
+    MODO_MOBILE = document.getElementById('configMobile').value || 'auto';
+    
+    localStorage.setItem('configJornada', MINUTOS_DIA_SEMANA);
+    localStorage.setItem('configSabado', MINUTOS_SABADO);
+    localStorage.setItem('configTolerancia', TOLERANCIA_MINUTOS);
+    localStorage.setItem('configLimiteExtra', LIMITE_HORAS_EXTRAS);
+    localStorage.setItem('configSenha', SENHA_PROTECAO);
+    localStorage.setItem('configMobile', MODO_MOBILE);
+    
+    aplicarConfigMobile();
+    // Recalcula tudo
+    document.querySelectorAll("#tabelaBody tr").forEach(linha => calcularLinha(linha));
+    mostrarToast('✅ Configurações salvas!', 'success');
+    fecharModal('modalConfig');
+    atualizarStatsResumo();
+}
+
+function resetarConfiguracoes() {
+    if (!confirm('Restaurar configurações padrão?')) return;
+    localStorage.removeItem('configJornada');
+    localStorage.removeItem('configSabado');
+    localStorage.removeItem('configTolerancia');
+    localStorage.removeItem('configLimiteExtra');
+    localStorage.removeItem('configSenha');
+    localStorage.removeItem('configMobile');
+    location.reload();
+}
+
+function aplicarConfigMobile() {
+    if (MODO_MOBILE === 'on' || (MODO_MOBILE === 'auto' && window.innerWidth < 768)) {
+        document.querySelectorAll('input[type="time"]').forEach(el => el.style.width = '70px');
+        document.querySelectorAll('.nota-dia').forEach(el => el.style.width = '50px');
+    } else {
+        document.querySelectorAll('input[type="time"]').forEach(el => el.style.width = '');
+        document.querySelectorAll('.nota-dia').forEach(el => el.style.width = '');
+    }
+}
+
+// ================================================================
+// ==================== BACKUP ====================
+// ================================================================
+
+function abrirBackup() {
+    document.getElementById('modalBackup').style.display = 'block';
+    const registros = JSON.parse(localStorage.getItem('registrosPonto')) || [];
+    document.getElementById('totalRegistros').textContent = registros.length;
+    document.getElementById('ultimoBackup').textContent = localStorage.getItem('ultimoBackup') || 'Nenhum';
+}
+
+function fazerBackup() {
+    const dados = {
+        backupPonto: localStorage.getItem('backup_ponto'),
+        registrosPonto: localStorage.getItem('registrosPonto'),
+        config: {
+            jornada: MINUTOS_DIA_SEMANA,
+            sabado: MINUTOS_SABADO,
+            tolerancia: TOLERANCIA_MINUTOS,
+            limiteExtra: LIMITE_HORAS_EXTRAS,
+            senha: SENHA_PROTECAO,
+            mobile: MODO_MOBILE,
+            tema: localStorage.getItem('tema')
+        },
+        data: new Date().toLocaleString()
+    };
+    
+    const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `backup_ponto_${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    
+    localStorage.setItem('ultimoBackup', new Date().toLocaleString());
+    mostrarToast('✅ Backup criado com sucesso!', 'success');
+}
+
+function restaurarBackup(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const dados = JSON.parse(e.target.result);
+            if (dados.backupPonto) localStorage.setItem('backup_ponto', dados.backupPonto);
+            if (dados.registrosPonto) localStorage.setItem('registrosPonto', dados.registrosPonto);
+            if (dados.config) {
+                if (dados.config.jornada) localStorage.setItem('configJornada', dados.config.jornada);
+                if (dados.config.sabado) localStorage.setItem('configSabado', dados.config.sabado);
+                if (dados.config.tolerancia) localStorage.setItem('configTolerancia', dados.config.tolerancia);
+                if (dados.config.limiteExtra) localStorage.setItem('configLimiteExtra', dados.config.limiteExtra);
+                if (dados.config.senha) localStorage.setItem('configSenha', dados.config.senha);
+                if (dados.config.mobile) localStorage.setItem('configMobile', dados.config.mobile);
+                if (dados.config.tema) localStorage.setItem('tema', dados.config.tema);
+            }
+            mostrarToast('✅ Backup restaurado com sucesso! Recarregando...', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } catch (err) {
+            mostrarToast('❌ Erro ao restaurar backup: arquivo inválido', 'error');
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
+
+function limparTodosDados() {
+    if (!confirm('⚠️ Tem certeza que deseja limpar TODOS os dados? Esta ação é irreversível!')) return;
+    if (!confirm('Confirme novamente: Limpar todos os dados do sistema?')) return;
+    localStorage.clear();
+    mostrarToast('🗑️ Todos os dados foram limpos!', 'warning');
+    setTimeout(() => location.reload(), 1000);
+}
+
+// ================================================================
+// ==================== COMPARTILHAR ====================
+// ================================================================
+
+function compartilharResultados() {
+    calcularFolha();
+    if (!window.dadosCalculados) {
+        mostrarToast('⚠️ Calcule os resultados primeiro!', 'error');
+        return;
+    }
+    
+    const dados = window.dadosCalculados;
+    let texto = '📊 *RELATÓRIO DE PONTO*\n';
+    texto += `📅 ${new Date().toLocaleDateString()}\n`;
+    texto += `⏱️ Total Extra 50%: ${dados.totalExtras}\n`;
+    texto += `🎯 Total Extra 100%: ${dados.totalFeriado}\n`;
+    texto += `📊 Total de Dias: ${dados.totalDias}\n`;
+    texto += `⚡ Dias com Extra: ${dados.diasExtra}\n\n`;
+    texto += `📋 *Detalhamento:*\n`;
+    
+    dados.linhas.forEach(l => {
+        if (l.entrada || l.saida) {
+            texto += `${String(l.dia).padStart(2,'0')} | ${l.entrada} → ${l.saida} | Total: ${l.total} | ${l.status.replace(/<[^>]*>/g, '').trim()}`;
+            if (l.nota) texto += ` | Obs: ${l.nota}`;
+            texto += '\n';
+        }
+    });
+    
+    // Copiar para clipboard
+    navigator.clipboard.writeText(texto).then(() => {
+        mostrarToast('📋 Relatório copiado para área de transferência!', 'success');
+    }).catch(() => {
+        // Fallback: mostrar em alert
+        alert(texto);
+    });
+    
+    // Tentar compartilhar via Web Share API
+    if (navigator.share) {
+        navigator.share({
+            title: 'Relatório de Ponto',
+            text: texto
+        }).catch(() => {});
+    }
+}
+
+// ================================================================
+// ==================== SALVAR REGISTRO ====================
+// ================================================================
+
+function salvarRegistro() {
+    calcularFolha();
+    if (!window.dadosCalculados) {
+        mostrarToast('⚠️ Nenhum dado para salvar. Calcule os resultados primeiro!', 'error');
+        return;
+    }
+
+    const temDados = window.dadosCalculados.linhas.some(l => l.entrada || l.saida);
+    if (!temDados) {
+        mostrarToast('⚠️ Nenhum horário preenchido para salvar!', 'error');
+        return;
+    }
+
+    const registro = {
+        id: Date.now(),
+        dataHora: new Date().toLocaleString(),
+        dados: window.dadosCalculados,
+        totalExtras: window.dadosCalculados.totalExtras,
+        totalFeriado: window.dadosCalculados.totalFeriado
+    };
+
+    let registros = JSON.parse(localStorage.getItem('registrosPonto')) || [];
+    registros.push(registro);
+    localStorage.setItem('registrosPonto', JSON.stringify(registros));
+    mostrarToast('✅ Registro salvo com sucesso!', 'success');
+}
+
+// ================================================================
+// ==================== CONSULTAR REGISTROS ====================
+// ================================================================
+
+function abrirModalConsulta() {
+    document.getElementById('modalConsulta').style.display = 'block';
+    carregarRegistros();
+}
+
+function carregarRegistros() {
+    const container = document.getElementById('listaRegistros');
+    const registros = JSON.parse(localStorage.getItem('registrosPonto')) || [];
+
+    if (registros.length === 0) {
+        container.innerHTML = '<div class="sem-registros">📭 Nenhum registro encontrado.</div>';
+        return;
+    }
+
+    let html = '';
+    registros.reverse().forEach((reg, index) => {
+        html += `
+            <div class="registro-item">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                    <div>
+                        <span class="registro-data">📅 ${reg.dataHora}</span>
+                        <span style="margin-left:15px;">Extra 50%: <strong>${reg.totalExtras}</strong></span>
+                        <span style="margin-left:15px;">Extra 100%: <strong>${reg.totalFeriado}</strong></span>
+                    </div>
+                    <div>
+                        <button class="btn btn-danger" style="padding:4px 12px;font-size:12px;" onclick="excluirRegistro(${reg.id})">🗑️</button>
+                    </div>
+                </div>
+                <div style="margin-top:10px; font-size:13px; color:#64748b; overflow-x:auto;">
+                    <table style="width:100%; min-width:auto; font-size:12px;">
+                        <thead>
+                            <tr>
+                                <th>Dia</th>
+                                <th>Entrada</th>
+                                <th>Saída Alm.</th>
+                                <th>Volta Alm.</th>
+                                <th>Saída</th>
+                                <th>Sáb.</th>
+                                <th>Fer.</th>
+                                <th>Total</th>
+                                <th>Extra</th>
+                                <th>Status</th>
+                                <th>Nota</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        `;
+        reg.dados.linhas.forEach(l => {
+            html += `
+                <tr>
+                    <td>${String(l.dia).padStart(2, '0')}</td>
+                    <td>${l.entrada}</td>
+                    <td>${l.saidaAlmoco}</td>
+                    <td>${l.voltaAlmoco}</td>
+                    <td>${l.saida}</td>
+                    <td>${l.isSabado ? '✅' : ''}</td>
+                    <td>${l.isFeriado ? '✅' : ''}</td>
+                    <td>${l.total}</td>
+                    <td>${l.extra}</td>
+                    <td>${l.status.replace(/<[^>]*>/g, '').trim()}</td>
+                    <td>${l.nota || ''}</td>
+                </tr>
+            `;
         });
+        html += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    });
 
-        document.getElementById("totalExtras").innerText = mToH(somaExtras);
-        document.getElementById("totalFeriado").innerText = mToH(somaFeriados);
+    container.innerHTML = html;
+}
 
-        // Armazena os dados calculados para salvar depois
-        window.dadosCalculados = {
-            linhas: dadosLinhas,
-            totalExtras: mToH(somaExtras),
-            totalFeriado: mToH(somaFeriados),
-            data: new Date().toLocaleString()
+function excluirRegistro(id) {
+    if (!confirm('Tem certeza que deseja excluir este registro?')) return;
+    let registros = JSON.parse(localStorage.getItem('registrosPonto')) || [];
+    registros = registros.filter(reg => reg.id !== id);
+    localStorage.setItem('registrosPonto', JSON.stringify(registros));
+    carregarRegistros();
+    mostrarToast('🗑️ Registro excluído!', 'info');
+}
+
+// ================================================================
+// ==================== EXPORTAR EXCEL (CSV) ====================
+// ================================================================
+
+function exportarExcel() {
+    calcularFolha();
+    if (!window.dadosCalculados) {
+        mostrarToast('⚠️ Calcule os resultados primeiro!', 'error');
+        return;
+    }
+
+    let csv = '\uFEFFDia,Entrada,Saída Almoço,Volta Almoço,Saída,Sábado,Feriado,Total,Extra,Status,Nota\n';
+    window.dadosCalculados.linhas.forEach(l => {
+        csv += `${String(l.dia).padStart(2, '0')},${l.entrada},${l.saidaAlmoco},${l.voltaAlmoco},${l.saida},${l.isSabado ? 'Sim' : 'Não'},${l.isFeriado ? 'Sim' : 'Não'},${l.total},${l.extra},${l.status.replace(/<[^>]*>/g, '').trim()},${l.nota || ''}\n`;
+    });
+    
+    csv += `\nResumo,,,,,,,,,,\n`;
+    csv += `Total Extra 50%,${window.dadosCalculados.totalExtras},,,,,,,,,\n`;
+    csv += `Total Extra 100%,${window.dadosCalculados.totalFeriado},,,,,,,,,\n`;
+    csv += `Total de Dias,${window.dadosCalculados.totalDias},,,,,,,,,\n`;
+    csv += `Dias com Extra,${window.dadosCalculados.diasExtra},,,,,,,,,\n`;
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `ponto_${new Date().toLocaleDateString().replace(/\//g, '-')}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    mostrarToast('📊 Excel exportado com sucesso!', 'success');
+}
+
+// ================================================================
+// ==================== IMPORTAR CSV ====================
+// ================================================================
+
+function importarCSV() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.csv';
+    input.onchange = function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            try {
+                const texto = event.target.result;
+                const linhas = texto.split('\n').filter(line => line.trim());
+                // Pula cabeçalho
+                const dados = linhas.slice(1).filter(line => {
+                    const cols = line.split(',');
+                    return cols.length >= 9 && (cols[1] || cols[4]);
+                });
+                
+                if (dados.length === 0) {
+                    mostrarToast('⚠️ Nenhum dado válido encontrado no CSV', 'warning');
+                    return;
+                }
+                
+                let importados = 0;
+                dados.forEach(line => {
+                    const cols = line.split(',');
+                    const dia = parseInt(cols[0]);
+                    if (dia >= 1 && dia <= 31) {
+                        const linha = document.getElementById(`dia-${dia}`);
+                        if (linha) {
+                            linha.querySelector(".entrada").value = cols[1] || '';
+                            linha.querySelector(".saidaAlmoco").value = cols[2] || '';
+                            linha.querySelector(".voltaAlmoco").value = cols[3] || '';
+                            linha.querySelector(".saida").value = cols[4] || '';
+                            linha.querySelector(".isSabado").checked = cols[5]?.toLowerCase().includes('sim') || false;
+                            linha.querySelector(".feriado").checked = cols[6]?.toLowerCase().includes('sim') || false;
+                            if (linha.querySelector(".nota-dia") && cols[10]) {
+                                linha.querySelector(".nota-dia").value = cols[10] || '';
+                            }
+                            calcularLinha(linha);
+                            importados++;
+                        }
+                    }
+                });
+                
+                marcarTodasLinhas();
+                mostrarToast(`✅ ${importados} dias importados com sucesso!`, 'success');
+                atualizarStatsResumo();
+            } catch (err) {
+                mostrarToast('❌ Erro ao importar CSV: formato inválido', 'error');
+            }
         };
-    }
+        reader.readAsText(file);
+    };
+    input.click();
+}
 
-    // ==================== SALVAR REGISTRO ====================
-    function salvarRegistro() {
-        // Primeiro calcula para ter os dados atualizados
-        calcularFolha();
+// ================================================================
+// ==================== MODAIS ====================
+// ================================================================
 
-        if (!window.dadosCalculados) {
-            alert('⚠️ Nenhum dado para salvar. Calcule os resultados primeiro!');
-            return;
-        }
+function fecharModal(id) {
+    document.getElementById(id).style.display = 'none';
+}
 
-        // Verifica se há dados preenchidos
-        const temDados = window.dadosCalculados.linhas.some(l => l.entrada || l.saida);
-        if (!temDados) {
-            alert('⚠️ Nenhum horário preenchido para salvar!');
-            return;
-        }
-
-        const registro = {
-            id: Date.now(),
-            dataHora: new Date().toLocaleString(),
-            dados: window.dadosCalculados,
-            totalExtras: window.dadosCalculados.totalExtras,
-            totalFeriado: window.dadosCalculados.totalFeriado
-        };
-
-        // Recupera registros existentes
-        let registros = JSON.parse(localStorage.getItem('registrosPonto')) || [];
-        registros.push(registro);
-        localStorage.setItem('registrosPonto', JSON.stringify(registros));
-
-        alert('✅ Registro salvo com sucesso!');
-    }
-
-    // ==================== CONSULTAR REGISTROS ====================
-    function abrirModalConsulta() {
-        const modal = document.getElementById('modalConsulta');
-        modal.style.display = 'block';
-        carregarRegistros();
-    }
-
-    function fecharModal() {
-        document.getElementById('modalConsulta').style.display = 'none';
-    }
-
-    // Fecha modal ao clicar fora
-    window.onclick = function(event) {
-        const modal = document.getElementById('modalConsulta');
+window.onclick = function(event) {
+    const modais = ['modalConsulta', 'modalDashboard', 'modalCalendario', 'modalConfig', 'modalBackup'];
+    modais.forEach(id => {
+        const modal = document.getElementById(id);
         if (event.target == modal) {
             modal.style.display = 'none';
         }
-    }
-
-    function carregarRegistros() {
-        const container = document.getElementById('listaRegistros');
-        const registros = JSON.parse(localStorage.getItem('registrosPonto')) || [];
-
-        if (registros.length === 0) {
-            container.innerHTML = '<div class="sem-registros">📭 Nenhum registro encontrado.</div>';
-            return;
-        }
-
-        let html = '';
-        // Mostra do mais recente para o mais antigo
-        registros.reverse().forEach((reg, index) => {
-            const idx = registros.length - index - 1;
-            html += `
-                <div class="registro-item">
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
-                        <div>
-                            <span class="registro-data">📅 ${reg.dataHora}</span>
-                            <span style="margin-left:15px;">Extra 50%: <strong>${reg.totalExtras}</strong></span>
-                            <span style="margin-left:15px;">Extra 100%: <strong>${reg.totalFeriado}</strong></span>
-                        </div>
-                        <div>
-                            <button class="btn-excluir-registro" onclick="excluirRegistro(${reg.id})">🗑️</button>
-                        </div>
-                    </div>
-                    <div style="margin-top:10px; font-size:13px; color:#666;">
-                        <table style="width:100%; min-width:auto; font-size:12px;">
-                            <thead>
-                                <tr>
-                                    <th>Dia</th>
-                                    <th>Entrada</th>
-                                    <th>Saída Alm.</th>
-                                    <th>Volta Alm.</th>
-                                    <th>Saída</th>
-                                    <th>Sáb.</th>
-                                    <th>Fer.</th>
-                                    <th>Total</th>
-                                    <th>Extra</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                    `;
-            reg.dados.linhas.forEach(l => {
-                html += `
-                    <tr>
-                        <td>${String(l.dia).padStart(2, '0')}</td>
-                        <td>${l.entrada}</td>
-                        <td>${l.saidaAlmoco}</td>
-                        <td>${l.voltaAlmoco}</td>
-                        <td>${l.saida}</td>
-                        <td>${l.isSabado ? '✅' : ''}</td>
-                        <td>${l.isFeriado ? '✅' : ''}</td>
-                        <td>${l.total}</td>
-                        <td>${l.extra}</td>
-                        <td>${l.status}</td>
-                    </tr>
-                `;
-            });
-            html += `
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            `;
-        });
-
-        container.innerHTML = html;
-    }
-
-    function excluirRegistro(id) {
-        if (!confirm('Tem certeza que deseja excluir este registro?')) return;
-        
-        let registros = JSON.parse(localStorage.getItem('registrosPonto')) || [];
-        registros = registros.filter(reg => reg.id !== id);
-        localStorage.setItem('registrosPonto', JSON.stringify(registros));
-        carregarRegistros(); // Recarrega a lista
-    }
-
-    // ==================== INICIALIZAÇÃO ====================
-    // Garante que a tabela seja gerada ao carregar
-    document.addEventListener('DOMContentLoaded', function() {
-        gerarTabela();
     });
+};
+
+// ================================================================
+// ==================== PREVENÇÃO DE PERDA ====================
+// ================================================================
+
+window.addEventListener('beforeunload', function(e) {
+    const temDados = document.querySelectorAll("#tabelaBody input[type='time']");
+    let temPreenchido = false;
+    temDados.forEach(input => {
+        if (input.value) temPreenchido = true;
+    });
+    if (temPreenchido) {
+        e.preventDefault();
+        e.returnValue = 'Você tem dados não salvos. Deseja realmente sair?';
+    }
+});
+
+// ================================================================
+// ==================== REDIMENSIONAMENTO ====================
+// ================================================================
+
+window.addEventListener('resize', function() {
+    aplicarConfigMobile();
+});
+
+console.log('🚀 GM-Calculadora Profissional de Ponto carregada com sucesso!');
+console.log('📋 Funcionalidades disponíveis:');
+console.log('  ✅ Cálculo em tempo real');
+console.log('  ✅ Dashboard com gráficos');
+console.log('  ✅ Calendário interativo');
+console.log('  ✅ Configurações personalizadas');
+console.log('  ✅ Backup e restauração');
+console.log('  ✅ Importar/Exportar CSV');
+console.log('  ✅ Notas por dia');
+console.log('  ✅ Compartilhar resultados');
+console.log('  ✅ Modo escuro');
+console.log('  ✅ Proteção por senha');
+console.log('  ✅ Modo mobile adaptativo');
 </script>
 </body>
 </html>
