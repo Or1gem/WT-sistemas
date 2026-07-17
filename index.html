@@ -958,7 +958,7 @@ function calcularLinha(linha) {
                 displayExtra.innerText = mToH(extraMinutos);
                 displayExtra.className = "extra-dia extra";
                 status = 'Extra';
-                displayStatus.innerHTML = `<span class="status-tag bg-extra">✅Extra</span>`;
+                displayStatus.innerHTML = `<span class="status-tag bg-extra">✅Hora Extra</span>`;
                 aplicarCoresInteligentes(linha, extraMinutos, totalMinutos, jornadaObrigatoria);
             } else {
                 displayExtra.innerText = "00:00";
@@ -1092,9 +1092,9 @@ function preencherHorarioPadrao() {
     if (!entrada) return;
     const saidaAlmoco = prompt('Digite o horário de início do intervalo (HH:MM):', '12:00');
     if (!saidaAlmoco) return;
-    const voltaAlmoco = prompt('Digite o horário de volta do intervalo (HH:MM):', '13:00');
+    const voltaAlmoco = prompt('Digite o horário de volta do intervalo (HH:MM):', '14:00');
     if (!voltaAlmoco) return;
-    const saida = prompt('Digite o horário de saída padrão (HH:MM):', '17:00');
+    const saida = prompt('Digite o horário de saída padrão (HH:MM):', '18:00');
     if (!saida) return;
 
     const linhas = document.querySelectorAll("#tabelaBody tr");
