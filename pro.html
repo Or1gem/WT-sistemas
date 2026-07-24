@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -196,6 +197,45 @@
         }
 
         .botoes .btn { padding: 12px 22px; font-size: 14px; }
+
+        /* ===== CONTROLES DE SELEÇÃO E MOVIMENTAÇÃO ===== */
+        .controles-avancados {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            margin-top: 15px;
+            padding: 15px;
+            background: var(--bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            transition: background var(--transition), border-color var(--transition);
+        }
+        .controles-avancados .grupo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .controles-avancados .grupo label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+        }
+        .controles-avancados .grupo input[type="number"] {
+            width: 65px;
+            padding: 6px 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text);
+            text-align: center;
+        }
+        .controles-avancados .btn {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
 
         /* ===== TOTAL BOX ===== */
         .total-box { 
@@ -674,6 +714,11 @@
             font-size: 12px;
             font-weight: 500;
         }
+
+        .selecionado {
+            outline: 2px solid var(--success);
+            outline-offset: -2px;
+        }
     </style>
 </head>
 
@@ -716,6 +761,7 @@
         <table>
             <thead>
                 <tr>
+                    <th style="width:30px;"><input type="checkbox" id="selecionarTodos" onchange="toggleSelecionarTodos()" title="Selecionar Todos"></th>
                     <th style="width:45px;">Dia</th>
                     <th>Entrada</th>
                     <th>Início Intervalo</th>
@@ -744,6 +790,27 @@
             <button class="btn btn-gold" style="padding: 8px 20px; font-size: 13px;" onclick="abrirModalReais()">
                 <i class="fas fa-coins"></i> Ver em Reais
             </button>
+        </div>
+
+        <!-- ===== NOVOS CONTROLES AVANÇADOS: PREENCHER SELECIONADOS E MOVER ===== -->
+        <div class="controles-avancados">
+            <div class="grupo">
+                <label for="diaOrigem">Dia Origem:</label>
+                <input type="number" id="diaOrigem" value="1" min="1" max="31">
+            </div>
+            <div class="grupo">
+                <label for="diaDestino">Dia Destino:</label>
+                <input type="number" id="diaDestino" value="2" min="1" max="31">
+            </div>
+            <div class="grupo">
+                <label>
+                    <input type="checkbox" id="limparOrigemAoMover" checked>
+                    Limpar Origem ao Mover
+                </label>
+            </div>
+            <button class="btn btn-success" onclick="preencherSelecionados()">📋 Preencher Selecionados</button>
+            <button class="btn btn-warning" onclick="moverHorario()">🔄 Mover Horário</button>
+            <button class="btn btn-danger" onclick="limparSelecao()">🗑️ Limpar Seleção</button>
         </div>
 
         <div class="botoes">
@@ -1058,7 +1125,6 @@ function calcularValorExtra(minutos, isFeriado = false) {
 function abrirModalReais() {
     const modal = document.getElementById('modalReais');
     modal.classList.add('ativo');
-    // Sincroniza os valores do modal com os inputs
     sincronizarValoresModal();
     atualizarModalReais();
 }
@@ -1067,7 +1133,6 @@ function fecharModalReais() {
     document.getElementById('modalReais').classList.remove('ativo');
 }
 
-// Fechar ao clicar fora
 document.getElementById('modalReais').addEventListener('click', function(e) {
     if (e.target === this) {
         fecharModalReais();
@@ -1075,14 +1140,12 @@ document.getElementById('modalReais').addEventListener('click', function(e) {
 });
 
 function sincronizarValoresModal() {
-    // Carrega valores salvos do localStorage se existirem
     const salarioSalvo = localStorage.getItem('salarioModal') || '1621,00';
     const cargaSalva = localStorage.getItem('cargaModal') || '220';
     
     document.getElementById('salarioInputModal').value = salarioSalvo;
     document.getElementById('cargaInputModal').value = cargaSalva;
     
-    // Atualiza valor da hora
     calcularValorHora();
 }
 
@@ -1094,12 +1157,9 @@ function salvarValoresModal() {
 }
 
 function atualizarModalReais() {
-    // Salva valores atuais
     salvarValoresModal();
-    
     calcularValorHora();
     
-    // Coletar totais
     const linhas = document.querySelectorAll("#tabelaBody tr");
     let totalExtra50 = 0;
     let totalExtra100 = 0;
@@ -1145,13 +1205,11 @@ function atualizarModalReais() {
         }
     });
     
-    // Atualizar valores no modal
     document.getElementById('rValorHora').textContent = formatMoney(valorHoraAtual);
     document.getElementById('rExtra50').textContent = formatMoney(totalExtra50);
     document.getElementById('rExtra100').textContent = formatMoney(totalExtra100);
     document.getElementById('rTotal').textContent = formatMoney(totalExtra50 + totalExtra100);
     
-    // Gerar lista de dias
     const listaContainer = document.getElementById('listaDiasReais');
     if (detalhes.length === 0) {
         listaContainer.innerHTML = '<div style="text-align:center;opacity:0.5;padding:10px;">Nenhum dado de hora extra encontrado</div>';
@@ -1176,7 +1234,6 @@ function atualizarModalReais() {
     }
 }
 
-// Eventos dos inputs do modal
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('salarioInputModal').addEventListener('input', function() {
         calcularValorHora();
@@ -1214,8 +1271,6 @@ window.onload = function() {
     carregarBackup();
     aplicarConfigMobile();
     atualizarStatsResumo();
-    
-    // Carrega valores salvos do modal
     sincronizarValoresModal();
 };
 
@@ -1229,6 +1284,7 @@ function gerarTabela() {
     for(let i = 1; i <= 31; i++){
         tabela.innerHTML += `
             <tr id="dia-${i}">
+                <td><input type="checkbox" class="selecionar-dia" data-dia="${i}" onchange="atualizarSelecaoTodos()"></td>
                 <td><strong>${String(i).padStart(2, '0')}</strong></td>
                 <td><input type="time" class="entrada" data-dia="${i}"></td>
                 <td><input type="time" class="saidaAlmoco" data-dia="${i}"></td>
@@ -1244,6 +1300,186 @@ function gerarTabela() {
             </tr>
         `;
     }
+}
+
+// ================================================================
+// ==================== SELEÇÃO DE DIAS ====================
+// ================================================================
+
+function toggleSelecionarTodos() {
+    const checked = document.getElementById('selecionarTodos').checked;
+    document.querySelectorAll('.selecionar-dia').forEach(cb => {
+        cb.checked = checked;
+        const tr = cb.closest('tr');
+        if (tr) {
+            if (checked) tr.classList.add('selecionado');
+            else tr.classList.remove('selecionado');
+        }
+    });
+}
+
+function atualizarSelecaoTodos() {
+    const todos = document.querySelectorAll('.selecionar-dia');
+    const marcados = document.querySelectorAll('.selecionar-dia:checked');
+    const selecionarTodos = document.getElementById('selecionarTodos');
+    selecionarTodos.checked = todos.length === marcados.length && todos.length > 0;
+    
+    todos.forEach(cb => {
+        const tr = cb.closest('tr');
+        if (tr) {
+            if (cb.checked) tr.classList.add('selecionado');
+            else tr.classList.remove('selecionado');
+        }
+    });
+}
+
+function limparSelecao() {
+    document.querySelectorAll('.selecionar-dia').forEach(cb => {
+        cb.checked = false;
+        const tr = cb.closest('tr');
+        if (tr) tr.classList.remove('selecionado');
+    });
+    document.getElementById('selecionarTodos').checked = false;
+    mostrarToast('🧹 Seleção limpa', 'info');
+}
+
+function getDiasSelecionados() {
+    const dias = [];
+    document.querySelectorAll('.selecionar-dia:checked').forEach(cb => {
+        dias.push(parseInt(cb.dataset.dia));
+    });
+    return dias;
+}
+
+// ================================================================
+// ==================== PREENCHER SELECIONADOS ====================
+// ================================================================
+
+function preencherSelecionados() {
+    const diaOrigem = parseInt(document.getElementById('diaOrigem').value);
+    if (diaOrigem < 1 || diaOrigem > 31) {
+        mostrarToast('⚠️ Dia de origem inválido!', 'error');
+        return;
+    }
+
+    const diasDestino = getDiasSelecionados();
+    if (diasDestino.length === 0) {
+        mostrarToast('⚠️ Selecione pelo menos um dia para preencher!', 'warning');
+        return;
+    }
+
+    const linhaOrigem = document.getElementById(`dia-${diaOrigem}`);
+    if (!linhaOrigem) {
+        mostrarToast('⚠️ Dia de origem não encontrado!', 'error');
+        return;
+    }
+
+    const entrada = linhaOrigem.querySelector(".entrada").value;
+    const saidaAlmoco = linhaOrigem.querySelector(".saidaAlmoco").value;
+    const voltaAlmoco = linhaOrigem.querySelector(".voltaAlmoco").value;
+    const saida = linhaOrigem.querySelector(".saida").value;
+    const nota = linhaOrigem.querySelector(".nota-dia")?.value || '';
+
+    if (!entrada && !saida) {
+        mostrarToast('⚠️ O dia de origem não tem horários para copiar!', 'warning');
+        return;
+    }
+
+    let copiados = 0;
+    diasDestino.forEach(dia => {
+        const linhaDestino = document.getElementById(`dia-${dia}`);
+        if (linhaDestino) {
+            // Não sobrescrever sábados e feriados? 
+            // Vamos permitir sobrescrever, pois o usuário selecionou explicitamente.
+            linhaDestino.querySelector(".entrada").value = entrada;
+            linhaDestino.querySelector(".saidaAlmoco").value = saidaAlmoco;
+            linhaDestino.querySelector(".voltaAlmoco").value = voltaAlmoco;
+            linhaDestino.querySelector(".saida").value = saida;
+            if (linhaDestino.querySelector(".nota-dia")) {
+                linhaDestino.querySelector(".nota-dia").value = nota;
+            }
+            calcularLinha(linhaDestino);
+            copiados++;
+        }
+    });
+
+    mostrarToast(`✅ Horários copiados para ${copiados} dia(s) selecionado(s)!`, 'success');
+    atualizarStatsResumo();
+}
+
+// ================================================================
+// ==================== MOVER HORÁRIO ====================
+// ================================================================
+
+function moverHorario() {
+    const diaOrigem = parseInt(document.getElementById('diaOrigem').value);
+    const diaDestino = parseInt(document.getElementById('diaDestino').value);
+    const limparOrigem = document.getElementById('limparOrigemAoMover').checked;
+
+    if (diaOrigem < 1 || diaOrigem > 31 || diaDestino < 1 || diaDestino > 31) {
+        mostrarToast('⚠️ Dias inválidos!', 'error');
+        return;
+    }
+
+    if (diaOrigem === diaDestino) {
+        mostrarToast('⚠️ Origem e destino não podem ser o mesmo dia!', 'warning');
+        return;
+    }
+
+    const linhaOrigem = document.getElementById(`dia-${diaOrigem}`);
+    const linhaDestino = document.getElementById(`dia-${diaDestino}`);
+
+    if (!linhaOrigem || !linhaDestino) {
+        mostrarToast('⚠️ Dia de origem ou destino não encontrado!', 'error');
+        return;
+    }
+
+    // Copiar dados da origem
+    const entrada = linhaOrigem.querySelector(".entrada").value;
+    const saidaAlmoco = linhaOrigem.querySelector(".saidaAlmoco").value;
+    const voltaAlmoco = linhaOrigem.querySelector(".voltaAlmoco").value;
+    const saida = linhaOrigem.querySelector(".saida").value;
+    const isSabado = linhaOrigem.querySelector(".isSabado").checked;
+    const isFeriado = linhaOrigem.querySelector(".feriado").checked;
+    const nota = linhaOrigem.querySelector(".nota-dia")?.value || '';
+
+    if (!entrada && !saida) {
+        mostrarToast('⚠️ O dia de origem não tem horários para mover!', 'warning');
+        return;
+    }
+
+    // Aplicar no destino
+    linhaDestino.querySelector(".entrada").value = entrada;
+    linhaDestino.querySelector(".saidaAlmoco").value = saidaAlmoco;
+    linhaDestino.querySelector(".voltaAlmoco").value = voltaAlmoco;
+    linhaDestino.querySelector(".saida").value = saida;
+    linhaDestino.querySelector(".isSabado").checked = isSabado;
+    linhaDestino.querySelector(".feriado").checked = isFeriado;
+    if (linhaDestino.querySelector(".nota-dia")) {
+        linhaDestino.querySelector(".nota-dia").value = nota;
+    }
+    calcularLinha(linhaDestino);
+    marcarLinha(diaDestino);
+
+    // Limpar origem se solicitado
+    if (limparOrigem) {
+        linhaOrigem.querySelector(".entrada").value = '';
+        linhaOrigem.querySelector(".saidaAlmoco").value = '';
+        linhaOrigem.querySelector(".voltaAlmoco").value = '';
+        linhaOrigem.querySelector(".saida").value = '';
+        linhaOrigem.querySelector(".isSabado").checked = false;
+        linhaOrigem.querySelector(".feriado").checked = false;
+        if (linhaOrigem.querySelector(".nota-dia")) {
+            linhaOrigem.querySelector(".nota-dia").value = '';
+        }
+        calcularLinha(linhaOrigem);
+        marcarLinha(diaOrigem);
+        mostrarToast(`🔄 Horário movido do dia ${diaOrigem} para o dia ${diaDestino}!`, 'success');
+    } else {
+        mostrarToast(`📋 Horário copiado do dia ${diaOrigem} para o dia ${diaDestino}!`, 'success');
+    }
+
+    atualizarStatsResumo();
 }
 
 // ================================================================
@@ -1341,7 +1577,6 @@ function calcularLinha(linha) {
             }
         }
         
-        // Calcula valor em reais usando o valorHoraAtual do modal
         let valor = 0;
         if (isFeriado && totalMinutos > 0) {
             valor = calcularValorExtra(totalMinutos, true);
@@ -1489,7 +1724,7 @@ function preencherHorarioPadrao() {
 }
 
 // ================================================================
-// ==================== COPIAR HORÁRIOS ====================
+// ==================== COPIAR HORÁRIOS (LEGADO) ====================
 // ================================================================
 
 function copiarHorarios() {
@@ -2420,6 +2655,8 @@ console.log('  ✅ Compartilhar resultados');
 console.log('  ✅ Modo escuro');
 console.log('  ✅ Proteção por senha');
 console.log('  ✅ Modo mobile adaptativo');
+console.log('  ✅ NOVO: Seleção de dias para preenchimento');
+console.log('  ✅ NOVO: Mover horário entre dias');
 </script>
 </body>
 </html>
