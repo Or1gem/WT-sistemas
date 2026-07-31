@@ -223,14 +223,10 @@
             font-weight: 500;
             color: var(--text);
         }
-        .controles-avancados .grupo input[type="number"] {
-            width: 65px;
-            padding: 6px 8px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--card-bg);
-            color: var(--text);
-            text-align: center;
+        .controles-avancados .grupo input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--success);
         }
         .controles-avancados .btn {
             padding: 8px 16px;
@@ -609,7 +605,7 @@
             margin: 8px 20px;
         }
 
-        /* ===== MODAL ===== */
+        /* ===== MODAL GERAL ===== */
         .modal {
             display: none;
             position: fixed;
@@ -719,6 +715,87 @@
             outline: 2px solid var(--success);
             outline-offset: -2px;
         }
+
+        /* ===== MODAL PREENCHER PADRÃO ===== */
+        .modal-padrao .modal-content {
+            max-width: 500px;
+        }
+        .modal-padrao .campo-horario {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 12px;
+        }
+        .modal-padrao .campo-horario label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+        }
+        .modal-padrao .campo-horario input[type="time"] {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 16px;
+        }
+        .modal-padrao .opcoes {
+            display: flex;
+            gap: 20px;
+            margin: 16px 0 20px 0;
+            flex-wrap: wrap;
+        }
+        .modal-padrao .opcoes label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .modal-padrao .opcoes input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+        }
+        .modal-padrao .botoes-modal {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
+
+        /* ===== MODAL MOVIMENTAÇÃO ===== */
+        .modal-movimentacao .modal-content {
+            max-width: 600px;
+        }
+        .modal-movimentacao .grupo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .modal-movimentacao .grupo label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+        }
+        .modal-movimentacao .grupo input[type="number"] {
+            width: 65px;
+            padding: 6px 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text);
+            text-align: center;
+        }
+        .modal-movimentacao .btn {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+        .modal-movimentacao .linha-botoes {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
     </style>
 </head>
 
@@ -792,25 +869,19 @@
             </button>
         </div>
 
-        <!-- ===== NOVOS CONTROLES AVANÇADOS: PREENCHER SELECIONADOS E MOVER ===== -->
+        <!-- ===== CONTROLES AVANÇADOS (apenas botão para abrir modal e checkbox avanço) ===== -->
         <div class="controles-avancados">
-            <div class="grupo">
-                <label for="diaOrigem">Dia Origem:</label>
-                <input type="number" id="diaOrigem" value="1" min="1" max="31">
-            </div>
-            <div class="grupo">
-                <label for="diaDestino">Dia Destino:</label>
-                <input type="number" id="diaDestino" value="2" min="1" max="31">
-            </div>
+            <!-- Botão para abrir modal de movimentação -->
+            <button class="btn btn-info" onclick="document.getElementById('modalMovimentacao').style.display='block'">
+                <i class="fas fa-arrows-alt-h"></i> Movimentação
+            </button>
+            <!-- Checkbox de avanço automático (mantido fora) -->
             <div class="grupo">
                 <label>
-                    <input type="checkbox" id="limparOrigemAoMover" checked>
-                    Limpar Origem ao Mover
+                    <input type="checkbox" id="chkAvancarAutomatico" checked>
+                    Avanço automático
                 </label>
             </div>
-            <button class="btn btn-success" onclick="preencherSelecionados()">📋 Preencher Selecionados</button>
-            <button class="btn btn-warning" onclick="moverHorario()">🔄 Mover Horário</button>
-            <button class="btn btn-danger" onclick="limparSelecao()">🗑️ Limpar Seleção</button>
         </div>
 
         <div class="botoes">
@@ -1020,6 +1091,77 @@
         <div id="backupInfo" style="margin-top:15px; padding:15px; background:var(--bg); border-radius:12px;">
             <p>📦 Último backup: <span id="ultimoBackup">Nenhum</span></p>
             <p>📊 Registros salvos: <span id="totalRegistros">0</span></p>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL PREENCHER PADRÃO ===== -->
+<div id="modalPreencherPadrao" class="modal modal-padrao">
+    <div class="modal-content">
+        <span class="close-modal" onclick="fecharModalPreencherPadrao()">&times;</span>
+        <h2><i class="fas fa-clock"></i> Preencher Padrão</h2>
+        <p style="margin-bottom:16px; color: #64748b;">Informe os horários que deseja aplicar a todos os dias.</p>
+
+        <div class="campo-horario">
+            <label for="padraoEntrada">Entrada</label>
+            <input type="time" id="padraoEntrada" value="08:00">
+        </div>
+        <div class="campo-horario">
+            <label for="padraoSaidaAlmoco">Saída para Almoço</label>
+            <input type="time" id="padraoSaidaAlmoco" value="12:00">
+        </div>
+        <div class="campo-horario">
+            <label for="padraoVoltaAlmoco">Retorno do Almoço</label>
+            <input type="time" id="padraoVoltaAlmoco" value="14:00">
+        </div>
+        <div class="campo-horario">
+            <label for="padraoSaida">Saída</label>
+            <input type="time" id="padraoSaida" value="18:00">
+        </div>
+
+        <div class="opcoes">
+            <label>
+                <input type="checkbox" id="incluirSabados" checked>
+                Incluir Sábados
+            </label>
+            <label>
+                <input type="checkbox" id="incluirFeriados" checked>
+                Incluir Feriados
+            </label>
+        </div>
+
+        <div class="botoes-modal">
+            <button class="btn btn-secondary" style="background:var(--bg);color:var(--text);" onclick="fecharModalPreencherPadrao()">Cancelar</button>
+            <button class="btn btn-success" onclick="aplicarPreencherPadrao()">Aplicar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL MOVIMENTAÇÃO (NOVO) ===== -->
+<div id="modalMovimentacao" class="modal modal-movimentacao">
+    <div class="modal-content">
+        <span class="close-modal" onclick="fecharModal('modalMovimentacao')">&times;</span>
+        <h2><i class="fas fa-arrows-alt-h"></i> Movimentação de Horários</h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 15px; align-items: center; justify-content: center; margin-top: 10px;">
+            <div class="grupo">
+                <label for="diaOrigem">Dia Origem:</label>
+                <input type="number" id="diaOrigem" value="1" min="1" max="31">
+            </div>
+            <div class="grupo">
+                <label for="diaDestino">Dia Destino:</label>
+                <input type="number" id="diaDestino" value="2" min="1" max="31">
+            </div>
+            <div class="grupo">
+                <label>
+                    <input type="checkbox" id="limparOrigemAoMover" checked>
+                    Limpar Origem ao Mover
+                </label>
+            </div>
+        </div>
+        <div class="linha-botoes">
+            <button class="btn btn-success" onclick="preencherSelecionados()">📋 Preencher Selecionados</button>
+            <button class="btn btn-warning" onclick="moverHorario()">🔄 Mover Horário</button>
+            <button class="btn btn-danger" onclick="limparSelecao()">🗑️ Limpar Seleção</button>
         </div>
     </div>
 </div>
@@ -1272,6 +1414,7 @@ window.onload = function() {
     aplicarConfigMobile();
     atualizarStatsResumo();
     sincronizarValoresModal();
+    configurarAvancoAutomatico(); // ativa o avanço automático (condicionado ao checkbox)
 };
 
 // ================================================================
@@ -1300,6 +1443,51 @@ function gerarTabela() {
             </tr>
         `;
     }
+}
+
+// ================================================================
+// ==================== AVANÇO AUTOMÁTICO (COM DELAY) ====================
+// ================================================================
+
+function configurarAvancoAutomatico() {
+    const ordem = ['entrada', 'saidaAlmoco', 'voltaAlmoco', 'saida'];
+    
+    document.addEventListener('input', function(e) {
+        const input = e.target;
+        if (input.tagName !== 'INPUT' || input.type !== 'time') return;
+        if (!input.classList.contains('entrada') && !input.classList.contains('saidaAlmoco') &&
+            !input.classList.contains('voltaAlmoco') && !input.classList.contains('saida')) return;
+        
+        // Verifica se o checkbox de avanço automático está marcado
+        const chkAvancar = document.getElementById('chkAvancarAutomatico');
+        if (!chkAvancar || !chkAvancar.checked) return;
+        
+        // Verifica se o horário está completo (5 caracteres: HH:MM)
+        if (input.value.length === 5) {
+            const linha = input.closest('tr');
+            if (!linha) return;
+            
+            const classes = Array.from(input.classList);
+            let idx = -1;
+            for (let i = 0; i < ordem.length; i++) {
+                if (classes.includes(ordem[i])) {
+                    idx = i;
+                    break;
+                }
+            }
+            if (idx === -1 || idx === ordem.length - 1) return;
+            
+            const proximoNome = ordem[idx + 1];
+            const proximo = linha.querySelector('.' + proximoNome);
+            if (proximo) {
+                // Delay de 300ms para não ser tão rápido
+                setTimeout(() => {
+                    proximo.focus();
+                    proximo.select();
+                }, 600);
+            }
+        }
+    });
 }
 
 // ================================================================
@@ -1340,6 +1528,8 @@ function limparSelecao() {
         if (tr) tr.classList.remove('selecionado');
     });
     document.getElementById('selecionarTodos').checked = false;
+    // Fecha o modal se estiver aberto
+    fecharModal('modalMovimentacao');
     mostrarToast('🧹 Seleção limpa', 'info');
 }
 
@@ -1389,8 +1579,6 @@ function preencherSelecionados() {
     diasDestino.forEach(dia => {
         const linhaDestino = document.getElementById(`dia-${dia}`);
         if (linhaDestino) {
-            // Não sobrescrever sábados e feriados? 
-            // Vamos permitir sobrescrever, pois o usuário selecionou explicitamente.
             linhaDestino.querySelector(".entrada").value = entrada;
             linhaDestino.querySelector(".saidaAlmoco").value = saidaAlmoco;
             linhaDestino.querySelector(".voltaAlmoco").value = voltaAlmoco;
@@ -1403,6 +1591,7 @@ function preencherSelecionados() {
         }
     });
 
+    fecharModal('modalMovimentacao');
     mostrarToast(`✅ Horários copiados para ${copiados} dia(s) selecionado(s)!`, 'success');
     atualizarStatsResumo();
 }
@@ -1434,7 +1623,6 @@ function moverHorario() {
         return;
     }
 
-    // Copiar dados da origem
     const entrada = linhaOrigem.querySelector(".entrada").value;
     const saidaAlmoco = linhaOrigem.querySelector(".saidaAlmoco").value;
     const voltaAlmoco = linhaOrigem.querySelector(".voltaAlmoco").value;
@@ -1448,7 +1636,6 @@ function moverHorario() {
         return;
     }
 
-    // Aplicar no destino
     linhaDestino.querySelector(".entrada").value = entrada;
     linhaDestino.querySelector(".saidaAlmoco").value = saidaAlmoco;
     linhaDestino.querySelector(".voltaAlmoco").value = voltaAlmoco;
@@ -1461,7 +1648,6 @@ function moverHorario() {
     calcularLinha(linhaDestino);
     marcarLinha(diaDestino);
 
-    // Limpar origem se solicitado
     if (limparOrigem) {
         linhaOrigem.querySelector(".entrada").value = '';
         linhaOrigem.querySelector(".saidaAlmoco").value = '';
@@ -1479,6 +1665,7 @@ function moverHorario() {
         mostrarToast(`📋 Horário copiado do dia ${diaOrigem} para o dia ${diaDestino}!`, 'success');
     }
 
+    fecharModal('modalMovimentacao');
     atualizarStatsResumo();
 }
 
@@ -1694,34 +1881,62 @@ function marcarTodasLinhas() {
 }
 
 // ================================================================
-// ==================== PREENCHER PADRÃO ====================
+// ==================== PREENCHER PADRÃO (MODAL) ====================
 // ================================================================
 
 function preencherHorarioPadrao() {
-    const entrada = prompt('Digite o horário de entrada padrão (HH:MM):', '08:00');
-    if (!entrada) return;
-    const saidaAlmoco = prompt('Digite o horário de início do intervalo (HH:MM):', '12:00');
-    if (!saidaAlmoco) return;
-    const voltaAlmoco = prompt('Digite o horário de volta do intervalo (HH:MM):', '14:00');
-    if (!voltaAlmoco) return;
-    const saida = prompt('Digite o horário de saída padrão (HH:MM):', '18:00');
-    if (!saida) return;
+    document.getElementById('modalPreencherPadrao').style.display = 'block';
+}
+
+function fecharModalPreencherPadrao() {
+    document.getElementById('modalPreencherPadrao').style.display = 'none';
+}
+
+function aplicarPreencherPadrao() {
+    const entrada = document.getElementById('padraoEntrada').value;
+    const saidaAlmoco = document.getElementById('padraoSaidaAlmoco').value;
+    const voltaAlmoco = document.getElementById('padraoVoltaAlmoco').value;
+    const saida = document.getElementById('padraoSaida').value;
+    const incluirSabados = document.getElementById('incluirSabados').checked;
+    const incluirFeriados = document.getElementById('incluirFeriados').checked;
+
+    if (!entrada || !saida) {
+        mostrarToast('⚠️ Preencha pelo menos Entrada e Saída!', 'warning');
+        return;
+    }
 
     const linhas = document.querySelectorAll("#tabelaBody tr");
+    let preenchidos = 0;
+
     linhas.forEach(linha => {
         const isSabado = linha.querySelector(".isSabado").checked;
         const isFeriado = linha.querySelector(".feriado").checked;
-        if (!isSabado && !isFeriado) {
+
+        let devePreencher = false;
+        if (isFeriado && incluirFeriados) devePreencher = true;
+        else if (isSabado && incluirSabados) devePreencher = true;
+        else if (!isSabado && !isFeriado) devePreencher = true;
+
+        if (devePreencher) {
             linha.querySelector(".entrada").value = entrada;
             linha.querySelector(".saidaAlmoco").value = saidaAlmoco;
             linha.querySelector(".voltaAlmoco").value = voltaAlmoco;
             linha.querySelector(".saida").value = saida;
             calcularLinha(linha);
+            preenchidos++;
         }
     });
-    mostrarToast('✅ Horários padrão preenchidos!', 'success');
+
+    fecharModalPreencherPadrao();
+    mostrarToast(`✅ Horários padrão aplicados a ${preenchidos} dia(s)!`, 'success');
     atualizarStatsResumo();
 }
+
+document.getElementById('modalPreencherPadrao').addEventListener('click', function(e) {
+    if (e.target === this) {
+        fecharModalPreencherPadrao();
+    }
+});
 
 // ================================================================
 // ==================== COPIAR HORÁRIOS (LEGADO) ====================
@@ -2607,7 +2822,7 @@ function fecharModal(id) {
 }
 
 window.onclick = function(event) {
-    const modais = ['modalConsulta', 'modalDashboard', 'modalCalendario', 'modalConfig', 'modalBackup'];
+    const modais = ['modalConsulta', 'modalDashboard', 'modalCalendario', 'modalConfig', 'modalBackup', 'modalPreencherPadrao', 'modalMovimentacao'];
     modais.forEach(id => {
         const modal = document.getElementById(id);
         if (event.target == modal) {
@@ -2655,8 +2870,10 @@ console.log('  ✅ Compartilhar resultados');
 console.log('  ✅ Modo escuro');
 console.log('  ✅ Proteção por senha');
 console.log('  ✅ Modo mobile adaptativo');
-console.log('  ✅ NOVO: Seleção de dias para preenchimento');
-console.log('  ✅ NOVO: Mover horário entre dias');
+console.log('  ✅ Seleção de dias para preenchimento');
+console.log('  ✅ Mover horário entre dias (agora em popup)');
+console.log('  ✅ Modal para Preencher Padrão com opções de Sábado e Feriado');
+console.log('  ✅ Avanço automático condicional (checkbox) com delay');
 </script>
 </body>
 </html>
