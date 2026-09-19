@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>WT Sistemas & Automação</title>
+  <!-- Font Awesome para ícones tecnológicos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0b0d15;
+      color: #eef2fb;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* Fundo com grid tecnológico e partículas sutis */
+    .tech-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 30%, rgba(0, 180, 255, 0.03) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(0, 255, 200, 0.02) 0%, transparent 50%),
+        repeating-linear-gradient(45deg, rgba(255,255,255,0.01) 0px, rgba(255,255,255,0.01) 2px, transparent 2px, transparent 8px);
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    /* partículas estilo matrix / neural */
+    #particles-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 28px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* header com efeito glassmorphism + linha brilhante */
+    header {
+      padding: 24px 0 16px;
+      border-bottom: 1px solid rgba(0, 255, 255, 0.15);
+      backdrop-filter: blur(4px);
+      background: rgba(11, 13, 21, 0.5);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      margin-bottom: 30px;
+      border-radius: 0 0 30px 30px;
+    }
+
+    .header-flex {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      font-size: 2.6rem;
+      background: linear-gradient(135deg, #00d4ff, #00ffab);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 18px rgba(0, 212, 255, 0.3));
+    }
+
+    .logo-text {
+      font-weight: 700;
+      font-size: 1.8rem;
+      letter-spacing: -0.5px;
+      background: linear-gradient(to right, #f0f9ff, #a5f3fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .logo-sub {
+      font-size: 0.75rem;
+      opacity: 0.7;
+      letter-spacing: 2px;
+      display: block;
+      margin-top: -4px;
+      background: none;
+      -webkit-text-fill-color: #a0c4e0;
+    }
+
+    .contact-header {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .contact-header a {
+      color: #c8dae8;
+      text-decoration: none;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: 0.3s;
+      border: 1px solid rgba(0, 200, 255, 0.1);
+      padding: 8px 16px;
+      border-radius: 60px;
+      background: rgba(255,255,255,0.02);
+      backdrop-filter: blur(2px);
+    }
+
+    .contact-header a i {
+      color: #00d4ff;
+      font-size: 1.1rem;
+    }
+
+    .contact-header a:hover {
+      border-color: #00d4ff;
+      background: rgba(0, 212, 255, 0.08);
+      transform: scale(1.02);
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.15);
+    }
+
+    /* seção hero */
+    .hero {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0 40px;
+      gap: 30px;
+    }
+
+    .hero-content {
+      flex: 1 1 450px;
+    }
+
+    .hero-content h1 {
+      font-size: 3.2rem;
+      font-weight: 700;
+      line-height: 1.2;
+      background: linear-gradient(135deg, #ffffff 0%, #a0e9ff 70%, #7fffd4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 16px;
+      letter-spacing: -1px;
+    }
+
+    .hero-content p {
+      font-size: 1.2rem;
+      color: #b4ccdd;
+      max-width: 600px;
+      margin-bottom: 28px;
+      backdrop-filter: blur(2px);
+    }
+
+    .highlight-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      margin-top: 20px;
+    }
+
+    .stat-item {
+      background: rgba(0, 200, 255, 0.04);
+      padding: 10px 20px 10px 16px;
+      border-radius: 60px;
+      border-left: 3px solid #00d4ff;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .stat-item i {
+      color: #00ffab;
+      font-size: 1.4rem;
+    }
+
+    .stat-number {
+      font-weight: 700;
+      font-size: 1.6rem;
+      color: white;
+      margin-right: 4px;
+    }
+
+    .stat-label {
+      color: #aac2d6;
+      font-size: 0.9rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0066ff, #00cc99);
+      border: none;
+      padding: 14px 40px;
+      border-radius: 60px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: white;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      transition: 0.3s;
+      box-shadow: 0 8px 28px rgba(0, 150, 255, 0.3);
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .btn-primary i {
+      font-size: 1.2rem;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 12px 40px rgba(0, 180, 255, 0.5);
+      background: linear-gradient(135deg, #0077ff, #00ddaa);
+    }
+
+    .hero-graphic {
+      flex: 1 1 300px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .orb {
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #00aaff, #003366);
+      box-shadow: 0 0 80px rgba(0, 150, 255, 0.2), inset 0 0 80px rgba(0, 255, 200, 0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: pulseGlow 6s infinite alternate;
+      border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .orb i {
+      font-size: 6rem;
+      color: white;
+      filter: drop-shadow(0 0 30px #00d4ff);
+    }
+
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 60px rgba(0, 180, 255, 0.2); transform: scale(1); }
+      100% { box-shadow: 0 0 120px rgba(0, 255, 200, 0.4); transform: scale(1.02); }
+    }
+
+    /* seção serviços cards tecnológicos */
+    .section-title {
+      font-size: 2.5rem;
+      font-weight: 600;
+      margin: 50px 0 20px;
+      background: linear-gradient(to right, #f0faff, #90e0ef);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .section-title i {
+      background: rgba(0, 200, 255, 0.1);
+      padding: 12px;
+      border-radius: 50%;
+      font-size: 1.8rem;
+      -webkit-text-fill-color: #00d4ff;
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+      margin: 30px 0 50px;
+    }
+
+    .service-card {
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(0, 200, 255, 0.1);
+      border-radius: 32px;
+      padding: 30px 24px;
+      transition: 0.3s ease;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .service-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, #00d4ff, #00ffab);
+      opacity: 0.6;
+    }
+
+    .service-card:hover {
+      transform: translateY(-12px) scale(1.01);
+      border-color: #00d4ff;
+      box-shadow: 0 20px 48px rgba(0, 180, 255, 0.2);
+      background: rgba(0, 200, 255, 0.04);
+    }
+
+    .service-card i {
+      font-size: 2.6rem;
+      color: #00d4ff;
+      margin-bottom: 16px;
+      display: inline-block;
+      background: rgba(0, 200, 255, 0.08);
+      padding: 12px;
+      border-radius: 20px;
+    }
+
+    .service-card h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #e2f0ff;
+    }
+
+    .service-card p {
+      color: #b0c8db;
+      font-size: 0.95rem;
+    }
+
+    /* seção por que investir */
+    .why-section {
+      background: rgba(0, 20, 40, 0.3);
+      backdrop-filter: blur(4px);
+      border-radius: 48px;
+      padding: 40px 30px;
+      margin: 40px 0;
+      border: 1px solid rgba(0, 255, 200, 0.05);
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
+    }
+
+    .why-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .why-item {
+      background: rgba(0, 150, 255, 0.03);
+      padding: 20px 16px;
+      border-radius: 28px;
+      text-align: center;
+      border: 1px solid rgba(0, 200, 255, 0.08);
+    }
+
+    .why-item .big-number {
+      font-size: 2.8rem;
+      font-weight: 700;
+      color: #00d4ff;
+      display: block;
+      line-height: 1;
+    }
+
+    .why-item span {
+      font-size: 0.95rem;
+      color: #b6d0e3;
+    }
+
+    .quote-highlight {
+      font-size: 1.2rem;
+      border-left: 4px solid #00d4ff;
+      padding-left: 24px;
+      margin: 30px 0 10px;
+      color: #c4def5;
+      font-weight: 300;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid #00d4ff;
+      padding: 14px 40px;
+      border-radius: 60px;
+      color: #00d4ff;
+      font-weight: 600;
+      transition: 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .btn-outline:hover {
+      background: #00d4ff;
+      color: #0b0d15;
+      box-shadow: 0 0 40px rgba(0, 212, 255, 0.3);
+      transform: scale(1.02);
+    }
+
+    /* contato e rodapé */
+    .contact-section {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0, 30, 50, 0.2);
+      backdrop-filter: blur(6px);
+      border-radius: 48px;
+      padding: 36px 32px;
+      margin: 50px 0 30px;
+      border: 1px solid rgba(0, 200, 255, 0.1);
+    }
+
+    .contact-info h3 {
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+    }
+
+    .contact-info p {
+      opacity: 0.8;
+    }
+
+    .contact-buttons {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .contact-buttons a {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(0, 200, 255, 0.2);
+      padding: 12px 28px;
+      border-radius: 60px;
+      color: #d6e8f5;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: 0.3s;
+    }
+
+    .contact-buttons a i {
+      color: #00d4ff;
+      font-size: 1.3rem;
+    }
+
+    .contact-buttons a:hover {
+      background: #00d4ff;
+      color: #0b0d15;
+      border-color: #00d4ff;
+      box-shadow: 0 0 40px rgba(0, 212, 255, 0.2);
+    }
+
+    .footer {
+      text-align: center;
+      padding: 30px 0 20px;
+      border-top: 1px solid rgba(255,255,255,0.03);
+      margin-top: 20px;
+      opacity: 0.7;
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+    }
+
+    .footer i {
+      color: #00d4ff;
+    }
+
+    @media (max-width: 680px) {
+      .hero-content h1 { font-size: 2.4rem; }
+      .contact-header a { padding: 6px 12px; font-size: 0.8rem; }
+      .logo-text { font-size: 1.4rem; }
+      .section-title { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="tech-bg"></div>
+  <canvas id="particles-canvas"></canvas>
+
+  <header>
+    <div class="container header-flex">
+      <div class="logo-area">
+        <i class="fas fa-microchip logo-icon"></i>
+        <div>
+          <span class="logo-text">WT Sistemas</span>
+          <span class="logo-sub">& Automação</span>
+        </div>
+      </div>
+      <div class="contact-header">
+        <a href="tel:+5596991967788"><i class="fas fa-phone-alt"></i> (96) 991967-788</a>
+        <a href="mailto:wevertonnyao@gmail.com"><i class="fas fa-envelope"></i> wevertonnyao@gmail.com</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-content">
+        <h1>Transforme ideias em <br>soluções digitais</h1>
+        <p>Desenvolvimento de sistemas, sites profissionais e automação de tarefas. Economize tempo, aumente resultados.</p>
+        <a href="https://wa.me/5596991968877?text=Ol%C3%A1%2C%20eu%20gostaria%20de%20um%20or%C3%A7amento." class="btn-primary"><i class="fas fa-rocket"></i> Solicitar Orçamento</a>
+        <div class="highlight-stats">
+          <div class="stat-item"><i class="fas fa-chart-line"></i> <span class="stat-number">+70%</span> <span class="stat-label">crescimento</span></div>
+          <div class="stat-item"><i class="fas fa-clock"></i> <span class="stat-number">24/7</span> <span class="stat-label">presença digital</span></div>
+        </div>
+      </div>
+      <div class="hero-graphic">
+        <div class="orb">
+          <i class="fas fa-brain"></i>
+        </div>
+      </div>
+    </section>
+
+    <!-- Serviços -->
+    <h2 class="section-title"><i class="fas fa-cogs"></i> Serviços Tecnológicos</h2>
+    <div class="services-grid">
+      <div class="service-card"><i class="fas fa-code"></i><h3>Criação de Sistemas</h3><p>Controle de ponto, gestão de estoque, CRM e automação de processos internos com alta performance.</p></div>
+      <div class="service-card"><i class="fas fa-laptop-code"></i><h3>Criação de Sites</h3><p>Modernos, responsivos e otimizados para SEO. Vitrine digital, portfólios e e-commerces.</p></div>
+      <div class="service-card"><i class="fas fa-robot"></i><h3>Automação de Tarefas</h3><p>Automatize planilhas, e-mails, relatórios. Aumente produtividade e elimine erros.</p></div>
+      <div class="service-card"><i class="fas fa-comment-dots"></i><h3>Bot & Agentes IA</h3><p>Automatize perguntas repetitivas com Bot. IA que responde ou vende para você.</p></div>
+    </div>
+
+    <!-- Diferenciais -->
+    <div class="why-section">
+      <div class="why-grid">
+        <div class="why-item"><span class="big-number">+70%</span><span>das empresas que investem em tecnologia aumentam vendas</span></div>
+        <div class="why-item"><span class="big-number">24/7</span><span>Presença digital ativa captando clientes o tempo todo</span></div>
+        <div class="why-item"><span class="big-number">⚡</span><span>Soluções exclusivas, seguras e sob medida</span></div>
+      </div>
+      <div class="quote-highlight">
+        <i class="fas fa-quote-left" style="color:#00d4ff; margin-right:12px;"></i> Empresas sem presença digital perdem oportunidades todos os dias. Um site ou sistema não é luxo — é necessidade estratégica.
+      </div>
+      <div style="margin-top:24px;">
+        <a href="#" class="btn-outline"><i class="fas fa-arrow-right"></i> Conheça nossas soluções</a>
+      </div>
+    </div>
+
+    <!-- Contato -->
+    <div class="contact-section">
+      <div class="contact-info">
+        <h3><i class="fas fa-headset" style="color:#00d4ff; margin-right:12px;"></i> Atendimento direto</h3>
+        <p>Fale comigo agora mesmo. Respondo rápido e tiro todas as dúvidas.</p>
+        <p style="margin-top:8px;"><i class="fas fa-clock" style="color:#00d4ff;"></i> Resposta garantida em até 2h úteis</p>
+      </div>
+      <div class="contact-buttons">
+        <a href="tel:+5596991967788"><i class="fab fa-whatsapp"></i> (96) 991967-788</a>
+        <a href="mailto:wevertonnyao@gmail.com"><i class="fas fa-envelope"></i> wevertonnyao@gmail.com</a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="container footer">
+    <p>© 2026 WT Sistemas & Automação - Todos os direitos reservados.</p>
+    <p style="margin-top:6px; opacity:0.6;"><i class="fas fa-microchip"></i> Desenvolvimento de alta performance | Inovação e resultado para o seu negócio</p>
+  </footer>
+
+  <script>
+    // Partículas com efeito neural / tecnológico
+    (function() {
+      const canvas = document.getElementById('particles-canvas');
+      const ctx = canvas.getContext('2d');
+      let w, h;
+      let particles = [];
+      const MAX_PARTICLES = 120;
+
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      class Particle {
+        constructor() { this.reset(); }
+        reset() {
+          this.x = Math.random() * w;
+          this.y = Math.random() * h;
+          this.vx = (Math.random() - 0.5) * 0.5;
+          this.vy = (Math.random() - 0.5) * 0.5;
+          this.radius = Math.random() * 1.8 + 0.6;
+          this.opacity = Math.random() * 0.5 + 0.2;
+        }
+        update() {
+          this.x += this.vx;
+          this.y += this.vy;
+          if (this.x < 0 || this.x > w) this.vx *= -1;
+          if (this.y < 0 || this.y > h) this.vy *= -1;
+          // atração sutil por mouse? apenas flutuação
+        }
+        draw() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(0, 200, 255, ${this.opacity})`;
+          ctx.fill();
+        }
+      }
+
+      for (let i = 0; i < MAX_PARTICLES; i++) {
+        particles.push(new Particle());
+      }
+
+      function drawLines() {
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < 140) {
+              ctx.beginPath();
+              ctx.moveTo(particles[i].x, particles[i].y);
+              ctx.lineTo(particles[j].x, particles[j].y);
+              const alpha = 0.12 * (1 - dist / 140);
+              ctx.strokeStyle = `rgba(0, 210, 255, ${alpha})`;
+              ctx.lineWidth = 0.4;
+              ctx.stroke();
+            }
+          }
+        }
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, w, h);
+        particles.forEach(p => { p.update(); p.draw(); });
+        drawLines();
+        requestAnimationFrame(animate);
+      }
+      animate();
+
+      // pequena interação: partículas seguem leve o mouse
+      let mouseX = 0, mouseY = 0;
+      document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        particles.forEach(p => {
+          const dx = p.x - mouseX;
+          const dy = p.y - mouseY;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist < 200) {
+            const force = 0.02;
+            p.vx -= dx * force * 0.02;
+            p.vy -= dy * force * 0.02;
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
