@@ -12,6 +12,7 @@ let MODO_MOBILE = localStorage.getItem('configMobile') || 'auto';
 let chartInstance = null;
 let valorHoraAtual = 0;
 let idRegistroEmEdicao = null;   // guarda o ID do registro sendo editado
+
 // ================================================================
 // ==================== TOAST ====================
 // ================================================================
@@ -612,6 +613,13 @@ function calcularLinha(linha) {
             displayValor.textContent = formatMoney(valor);
             displayValor.className = 'valor-dia' + (isFeriado ? ' feriado-valor' : ' valor-cell');
         }
+    } else {
+        // Limpa exibição quando não há entrada/saída
+        displayTotal.innerText = "00:00";
+        displayExtra.innerText = "00:00";
+        displayExtra.className = "extra-dia";
+        displayStatus.innerHTML = "-";
+        if (displayValor) displayValor.textContent = "R$ 0,00";
     }
 
     return { totalMinutos, extraMinutos, isFeriado };
@@ -945,7 +953,7 @@ function limparFormulario() {
 }
 
 // ================================================================
-// ==================== CALCULAR FOLHA ====================
+// ==================== CALCULAR FOLHA (CORRIGIDO) ====================
 // ================================================================
 
 function calcularFolha() {
@@ -954,25 +962,39 @@ function calcularFolha() {
     let somaFeriados = 0;
     let totalDias = 0;
     let diasExtra = 0;
+    let diasNormais = 0;
+    let diasFeriados = 0;
     let dadosLinhas = [];
 
     linhas.forEach((linha, index) => {
-        const resultado = calcularLinha(linha);
-        if (resultado) {
-            const { totalMinutos, extraMinutos, isFeriado } = resultado;
-            if (totalMinutos > 0) totalDias++;
-            if (isFeriado) {
-                somaFeriados += totalMinutos;
-            } else {
-                somaExtras += extraMinutos;
-                if (extraMinutos > 0) diasExtra++;
-            }
-        }
+        calcularLinha(linha);
 
         const v = (classe) => linha.querySelector(classe)?.value || '';
         const c = (classe) => linha.querySelector(classe)?.checked || false;
         const nota = linha.querySelector(".nota-dia")?.value || '';
         const valorTexto = linha.querySelector(".valor-dia")?.textContent || 'R$ 0,00';
+        const totalTexto = linha.querySelector(".total-dia")?.innerText || '00:00';
+        const extraTexto = linha.querySelector(".extra-dia")?.innerText || '00:00';
+
+        const totalMin = hToM(totalTexto) || 0;
+        const extraMin = hToM(extraTexto) || 0;
+        const isFeriado = c(".feriado");
+
+        // ===== CONTAGEM UNIFICADA =====
+        if (totalMin > 0) {
+            totalDias++;
+
+            if (isFeriado) {
+                diasFeriados++;
+                somaFeriados += totalMin;
+            } else if (extraMin > 0) {
+                diasExtra++;
+                somaExtras += extraMin;
+            } else {
+                diasNormais++;
+            }
+        }
+
         dadosLinhas.push({
             dia: index + 1,
             entrada: v(".entrada"),
@@ -980,26 +1002,30 @@ function calcularFolha() {
             voltaAlmoco: v(".voltaAlmoco"),
             saida: v(".saida"),
             isSabado: c(".isSabado"),
-            isFeriado: c(".feriado"),
-            total: linha.querySelector(".total-dia").innerText,
-            extra: linha.querySelector(".extra-dia").innerText,
+            isFeriado: isFeriado,
+            total: totalTexto,
+            extra: extraTexto,
             valor: valorTexto,
             status: linha.querySelector(".status-dia").innerText,
             nota: nota
         });
     });
 
+    // Atualiza os cards
     document.getElementById("totalExtras").innerText = mToH(somaExtras);
     document.getElementById("totalFeriado").innerText = mToH(somaFeriados);
     document.getElementById("totalDias").innerText = totalDias;
     document.getElementById("diasExtra").innerText = diasExtra;
 
+    // Guarda para uso geral
     window.dadosCalculados = {
         linhas: dadosLinhas,
         totalExtras: mToH(somaExtras),
         totalFeriado: mToH(somaFeriados),
         totalDias: totalDias,
         diasExtra: diasExtra,
+        diasNormais: diasNormais,
+        diasFeriados: diasFeriados,
         data: new Date().toLocaleString()
     };
 
@@ -1011,26 +1037,34 @@ function calcularFolha() {
 }
 
 // ================================================================
-// ==================== ATUALIZAR STATS RESUMO ====================
+// ==================== ATUALIZAR STATS RESUMO (CORRIGIDO) ====================
 // ================================================================
 
 function atualizarStatsResumo() {
     const linhas = document.querySelectorAll("#tabelaBody tr");
     let normais = 0, extras = 0, feriados = 0, reduzidos = 0;
-    
+
     linhas.forEach(linha => {
-        const total = linha.querySelector(".total-dia")?.innerText || '00:00';
-        const status = linha.querySelector(".status-dia")?.innerText || '';
+        const totalTexto = linha.querySelector(".total-dia")?.innerText || '00:00';
+        const extraTexto = linha.querySelector(".extra-dia")?.innerText || '00:00';
         const isFer = linha.querySelector(".feriado")?.checked || false;
-        
-        if (total !== '00:00') {
-            if (isFer) feriados++;
-            else if (status.includes('Extra')) extras++;
-            else if (status.includes('Normal')) normais++;
-            else reduzidos++;
+
+        const totalMin = hToM(totalTexto) || 0;
+        const extraMin = hToM(extraTexto) || 0;
+
+        if (totalMin > 0) {
+            if (isFer) {
+                feriados++;
+            } else if (extraMin > 0) {
+                extras++;
+            } else if (totalMin >= MINUTOS_DIA_SEMANA - TOLERANCIA_MINUTOS) {
+                normais++;
+            } else {
+                reduzidos++;
+            }
         }
     });
-    
+
     document.getElementById('statNormais').textContent = normais;
     document.getElementById('statExtras').textContent = extras;
     document.getElementById('statFeriados').textContent = feriados;
@@ -1038,7 +1072,7 @@ function atualizarStatsResumo() {
 }
 
 // ================================================================
-// ==================== DASHBOARD ====================
+// ==================== DASHBOARD (CORRIGIDO) ====================
 // ================================================================
 
 function abrirDashboard() {
@@ -1064,23 +1098,21 @@ function gerarDashboard() {
         const isFer = linha.querySelector(".feriado")?.checked || false;
         const total = linha.querySelector(".total-dia")?.innerText || '00:00';
         const extra = linha.querySelector(".extra-dia")?.innerText || '00:00';
+        const totalMin = hToM(total) || 0;
+        const extraMin = hToM(extra) || 0;
         
-        if (total !== '00:00') {
+        if (totalMin > 0) {
             dias.push(dia);
             extras.push(extra);
             
             if (isFer) {
                 diasFeriados++;
-                const min = hToM(total) || 0;
-                totalFeriado += min;
+                totalFeriado += totalMin;
+            } else if (extraMin > 0) {
+                diasComExtra++;
+                totalExtra += extraMin;
             } else {
-                const min = hToM(extra) || 0;
-                if (min > 0) {
-                    diasComExtra++;
-                    totalExtra += min;
-                } else {
-                    diasNormais++;
-                }
+                diasNormais++;
             }
         }
     });
@@ -2351,3 +2383,4 @@ console.log('🚀 Calculadora Profissional de Ponto carregada com sucesso!');
 console.log(' Tela de login com cod-ID');
 console.log(' Modal de salvar com nome do funcionário');
 console.log(' Relatório com cod-ID, nome, cargo e mês');
+console.log(' ✅ Contagem de Dias com Extra UNIFICADA em todos os lugares');
