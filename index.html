@@ -733,6 +733,39 @@
     <div class="modal-content">
         <span class="close-modal" onclick="fecharModal('modalRegistro')">&times;</span>
         <h2>🔄 Registro e Restauração</h2>
+        
+        <!-- ===== BACKUP DOS CÁLCULOS SALVOS (NOVO) ===== -->
+        <div style="
+            background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(139,92,246,0.08));
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        ">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+                <i class="fas fa-database" style="color:#3b82f6; font-size:18px;"></i>
+                <strong style="font-size:14px;">Backup dos Cálculos Salvos</strong>
+                <span id="infoQtdCalculos" style="
+                    margin-left:auto; font-size:12px; 
+                    background: #3b82f6; color: #fff; 
+                    padding: 3px 10px; border-radius: 20px; font-weight:600;
+                ">0 cálculos</span>
+            </div>
+            <p style="font-size:12.5px; color:#64748b; margin:0 0 12px;">
+                Exporte todos os cálculos salvos em um arquivo para usar depois, ou importe um arquivo de backup.
+            </p>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="btn btn-success" style="padding:9px 16px;font-size:13px;" onclick="exportarCalculos()">
+                    <i class="fas fa-file-export"></i> Exportar Cálculos
+                </button>
+                <button class="btn btn-purple" style="padding:9px 16px;font-size:13px; background:linear-gradient(135deg,#8b5cf6,#7c3aed); color:#fff; border:none; border-radius:8px; cursor:pointer;" onclick="document.getElementById('importarCalculosInput').click()">
+                    <i class="fas fa-file-import"></i> Importar Cálculos
+                </button>
+                <input type="file" id="importarCalculosInput" accept=".json" style="display:none" onchange="importarCalculos(event)">
+            </div>
+        </div>
+        
+        <!-- ===== REGISTRO GERAL (JÁ EXISTE) ===== -->
         <div class="Registro-actions" style="display:flex;gap:12px;flex-wrap:wrap;margin:15px 0;">
             <button class="btn btn-success" onclick="fazerRegistro()">📥 Fazer Registro</button>
             <button class="btn btn-warning" onclick="document.getElementById('restoreInput').click()">📤 Restaurar Registro</button>
