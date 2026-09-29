@@ -20,7 +20,7 @@ let idRegistroEmEdicao = null;   // guarda o ID do registro sendo editado
 function mostrarToast(mensagem, tipo = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast ${tipo}`;
-    const icons = { success: '', error: '❌', warning: '⚠️', info: 'ℹ️' };
+    const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
     toast.innerHTML = `<span>${icons[tipo] || 'ℹ️'}</span> ${mensagem}`;
     document.body.appendChild(toast);
     setTimeout(() => {
@@ -41,7 +41,7 @@ function abrirMenu() {
 document.addEventListener('click', function(event) {
     const menu = document.getElementById('menu');
     const btn = document.getElementById('icone');
-    if (!menu.contains(event.target) && !btn.contains(event.target)) {
+    if (menu && btn && !menu.contains(event.target) && !btn.contains(event.target)) {
         menu.classList.remove('ativo');
     }
 });
@@ -73,8 +73,12 @@ function formatMoney(value) {
 }
 
 function calcularValorHora() {
-    const salario = parseMoney(document.getElementById('salarioInputModal').value);
-    const carga = parseFloat(document.getElementById('cargaInputModal').value) || 220;
+    const salarioEl = document.getElementById('salarioInputModal');
+    const cargaEl = document.getElementById('cargaInputModal');
+    if (!salarioEl || !cargaEl) return 0;
+    
+    const salario = parseMoney(salarioEl.value);
+    const carga = parseFloat(cargaEl.value) || 220;
     
     if (salario > 0 && carga > 0) {
         valorHoraAtual = salario / carga;
@@ -107,9 +111,14 @@ function fecharModalReais() {
     document.getElementById('modalReais').classList.remove('ativo');
 }
 
-document.getElementById('modalReais').addEventListener('click', function(e) {
-    if (e.target === this) {
-        fecharModalReais();
+document.addEventListener('DOMContentLoaded', function() {
+    const modalReais = document.getElementById('modalReais');
+    if (modalReais) {
+        modalReais.addEventListener('click', function(e) {
+            if (e.target === this) {
+                fecharModalReais();
+            }
+        });
     }
 });
 
@@ -208,14 +217,20 @@ function atualizarModalReais() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('salarioInputModal').addEventListener('input', function() {
-        calcularValorHora();
-        atualizarModalReais();
-    });
-    document.getElementById('cargaInputModal').addEventListener('input', function() {
-        calcularValorHora();
-        atualizarModalReais();
-    });
+    const salarioEl = document.getElementById('salarioInputModal');
+    const cargaEl = document.getElementById('cargaInputModal');
+    if (salarioEl) {
+        salarioEl.addEventListener('input', function() {
+            calcularValorHora();
+            atualizarModalReais();
+        });
+    }
+    if (cargaEl) {
+        cargaEl.addEventListener('input', function() {
+            calcularValorHora();
+            atualizarModalReais();
+        });
+    }
 });
 
 // ================================================================
@@ -315,7 +330,7 @@ function configurarAvancoAutomatico() {
                 if (proximaLinha) {
                     proximo = proximaLinha.querySelector('.entrada');
                 } else {
-                    mostrarToast(' Último dia preenchido!', 'info');
+                    mostrarToast('Último dia preenchido!', 'info');
                     return;
                 }
             }
@@ -387,7 +402,7 @@ function getDiasSelecionados() {
 function preencherSelecionados() {
     const diaOrigem = parseInt(document.getElementById('diaOrigem').value);
     if (diaOrigem < 1 || diaOrigem > 31) {
-        mostrarToast(' Dia de origem inválido!', 'error');
+        mostrarToast('Dia de origem inválido!', 'error');
         return;
     }
 
@@ -399,7 +414,7 @@ function preencherSelecionados() {
 
     const linhaOrigem = document.getElementById(`dia-${diaOrigem}`);
     if (!linhaOrigem) {
-        mostrarToast(' Dia de origem não encontrado!', 'error');
+        mostrarToast('Dia de origem não encontrado!', 'error');
         return;
     }
 
@@ -431,7 +446,7 @@ function preencherSelecionados() {
     });
 
     fecharModal('modalMovimentacao');
-    mostrarToast(` Horários copiados para ${copiados} dia(s) selecionado(s)!`, 'success');
+    mostrarToast(`Horários copiados para ${copiados} dia(s) selecionado(s)!`, 'success');
     atualizarStatsResumo();
 }
 
@@ -445,12 +460,12 @@ function moverHorario() {
     const limparOrigem = document.getElementById('limparOrigemAoMover').checked;
 
     if (diaOrigem < 1 || diaOrigem > 31 || diaDestino < 1 || diaDestino > 31) {
-        mostrarToast('️ Dias inválidos!', 'error');
+        mostrarToast('Dias inválidos!', 'error');
         return;
     }
 
     if (diaOrigem === diaDestino) {
-        mostrarToast('️ Origem e destino não podem ser o mesmo dia!', 'warning');
+        mostrarToast('Origem e destino não podem ser o mesmo dia!', 'warning');
         return;
     }
 
@@ -458,7 +473,7 @@ function moverHorario() {
     const linhaDestino = document.getElementById(`dia-${diaDestino}`);
 
     if (!linhaOrigem || !linhaDestino) {
-        mostrarToast('️ Dia de origem ou destino não encontrado!', 'error');
+        mostrarToast('Dia de origem ou destino não encontrado!', 'error');
         return;
     }
 
@@ -471,7 +486,7 @@ function moverHorario() {
     const nota = linhaOrigem.querySelector(".nota-dia")?.value || '';
 
     if (!entrada && !saida) {
-        mostrarToast('️ O dia de origem não tem horários para mover!', 'warning');
+        mostrarToast('O dia de origem não tem horários para mover!', 'warning');
         return;
     }
 
@@ -589,7 +604,7 @@ function calcularLinha(linha) {
             if (totalMinutos > (jornadaObrigatoria + TOLERANCIA_MINUTOS)) {
                 extraMinutos = totalMinutos - jornadaObrigatoria;
                 if (extraMinutos > LIMITE_HORAS_EXTRAS) {
-                    mostrarToast(`️ Dia ${linha.id.replace('dia-', '')}: Excedeu limite de 2h extras`, 'warning');
+                    mostrarToast(`Dia ${linha.id.replace('dia-', '')}: Excedeu limite de 2h extras`, 'warning');
                 }
                 displayExtra.innerText = mToH(extraMinutos);
                 displayExtra.className = "extra-dia extra";
@@ -614,7 +629,6 @@ function calcularLinha(linha) {
             displayValor.className = 'valor-dia' + (isFeriado ? ' feriado-valor' : ' valor-cell');
         }
     } else {
-        // Limpa exibição quando não há entrada/saída
         displayTotal.innerText = "00:00";
         displayExtra.innerText = "00:00";
         displayExtra.className = "extra-dia";
@@ -654,7 +668,7 @@ function configurarEventosTempoReal() {
 }
 
 // ================================================================
-// ==================== Registro AUTOMÁTICO ====================
+// ==================== REGISTRO AUTOMÁTICO ====================
 // ================================================================
 
 function configurarRegistroAuto() {
@@ -770,7 +784,7 @@ function marcarFimDeSemana() {
     if (sabados === 0 && domingos === 0) {
         mostrarToast('ℹ️ Fins de semana já estavam marcados!', 'info');
     } else {
-        mostrarToast(` Marcados: ${sabados} sábado(s) e ${domingos} domingo(s)!`, 'success');
+        mostrarToast(`Marcados: ${sabados} sábado(s) e ${domingos} domingo(s)!`, 'success');
     }
 }
 
@@ -826,7 +840,7 @@ function aplicarPreencherPadrao() {
     const incluirFeriados = document.getElementById('incluirFeriados').checked;
 
     if (!entrada || !saida) {
-        mostrarToast('️ Preencha pelo menos Entrada e Saída!', 'warning');
+        mostrarToast('Preencha pelo menos Entrada e Saída!', 'warning');
         return;
     }
 
@@ -853,13 +867,18 @@ function aplicarPreencherPadrao() {
     });
 
     fecharModalPreencherPadrao();
-    mostrarToast(` Horários padrão aplicados a ${preenchidos} dia(s)!`, 'success');
+    mostrarToast(`Horários padrão aplicados a ${preenchidos} dia(s)!`, 'success');
     atualizarStatsResumo();
 }
 
-document.getElementById('modalPreencherPadrao').addEventListener('click', function(e) {
-    if (e.target === this) {
-        fecharModalPreencherPadrao();
+document.addEventListener('DOMContentLoaded', function() {
+    const modalPadrao = document.getElementById('modalPreencherPadrao');
+    if (modalPadrao) {
+        modalPadrao.addEventListener('click', function(e) {
+            if (e.target === this) {
+                fecharModalPreencherPadrao();
+            }
+        });
     }
 });
 
@@ -872,13 +891,13 @@ function copiarHorarios() {
     if (!dia) return;
     const numDia = parseInt(dia);
     if (numDia < 1 || numDia > 31) {
-        mostrarToast('️ Dia inválido!', 'error');
+        mostrarToast('Dia inválido!', 'error');
         return;
     }
 
     const linhaOrigem = document.getElementById(`dia-${numDia}`);
     if (!linhaOrigem) {
-        mostrarToast('️ Dia não encontrado!', 'error');
+        mostrarToast('Dia não encontrado!', 'error');
         return;
     }
 
@@ -889,7 +908,7 @@ function copiarHorarios() {
     const nota = linhaOrigem.querySelector(".nota-dia")?.value || '';
 
     if (!entrada && !saida) {
-        mostrarToast('️ Este dia não tem horários para copiar!', 'warning');
+        mostrarToast('Este dia não tem horários para copiar!', 'warning');
         return;
     }
 
@@ -910,7 +929,7 @@ function copiarHorarios() {
             copiados++;
         }
     });
-    mostrarToast(` Horários copiados para ${copiados} dias!`, 'success');
+    mostrarToast(`Horários copiados para ${copiados} dias!`, 'success');
     atualizarStatsResumo();
 }
 
@@ -953,7 +972,7 @@ function limparFormulario() {
 }
 
 // ================================================================
-// ==================== CALCULAR FOLHA (CORRIGIDO) ====================
+// ==================== CALCULAR FOLHA ====================
 // ================================================================
 
 function calcularFolha() {
@@ -980,7 +999,6 @@ function calcularFolha() {
         const extraMin = hToM(extraTexto) || 0;
         const isFeriado = c(".feriado");
 
-        // ===== CONTAGEM UNIFICADA =====
         if (totalMin > 0) {
             totalDias++;
 
@@ -1011,13 +1029,11 @@ function calcularFolha() {
         });
     });
 
-    // Atualiza os cards
     document.getElementById("totalExtras").innerText = mToH(somaExtras);
     document.getElementById("totalFeriado").innerText = mToH(somaFeriados);
     document.getElementById("totalDias").innerText = totalDias;
     document.getElementById("diasExtra").innerText = diasExtra;
 
-    // Guarda para uso geral
     window.dadosCalculados = {
         linhas: dadosLinhas,
         totalExtras: mToH(somaExtras),
@@ -1029,7 +1045,7 @@ function calcularFolha() {
         data: new Date().toLocaleString()
     };
 
-    mostrarToast(' Cálculo concluído!', 'success');
+    mostrarToast('Cálculo concluído!', 'success');
     atualizarStatsResumo();
     if (document.getElementById('dashboardContainer').style.display !== 'none') {
         gerarDashboard();
@@ -1037,7 +1053,7 @@ function calcularFolha() {
 }
 
 // ================================================================
-// ==================== ATUALIZAR STATS RESUMO (CORRIGIDO) ====================
+// ==================== ATUALIZAR STATS RESUMO ====================
 // ================================================================
 
 function atualizarStatsResumo() {
@@ -1065,14 +1081,19 @@ function atualizarStatsResumo() {
         }
     });
 
-    document.getElementById('statNormais').textContent = normais;
-    document.getElementById('statExtras').textContent = extras;
-    document.getElementById('statFeriados').textContent = feriados;
-    document.getElementById('statReduzidos').textContent = reduzidos;
+    const elNormais = document.getElementById('statNormais');
+    const elExtras = document.getElementById('statExtras');
+    const elFeriados = document.getElementById('statFeriados');
+    const elReduzidos = document.getElementById('statReduzidos');
+    
+    if (elNormais) elNormais.textContent = normais;
+    if (elExtras) elExtras.textContent = extras;
+    if (elFeriados) elFeriados.textContent = feriados;
+    if (elReduzidos) elReduzidos.textContent = reduzidos;
 }
 
 // ================================================================
-// ==================== DASHBOARD (CORRIGIDO) ====================
+// ==================== DASHBOARD ====================
 // ================================================================
 
 function abrirDashboard() {
@@ -1401,7 +1422,7 @@ function salvarConfiguracoes() {
     
     aplicarConfigMobile();
     document.querySelectorAll("#tabelaBody tr").forEach(linha => calcularLinha(linha));
-    mostrarToast(' Configurações salvas!', 'success');
+    mostrarToast('Configurações salvas!', 'success');
     fecharModal('modalConfig');
     atualizarStatsResumo();
 }
@@ -1427,7 +1448,7 @@ function aplicarConfigMobile() {
 }
 
 // ================================================================
-// ==================== REGISTRO (BACKUP) ====================
+// ==================== REGISTRO (BACKUP COMPLETO) ====================
 // ================================================================
 
 function abrirRegistro() {
@@ -1435,7 +1456,12 @@ function abrirRegistro() {
     const registros = JSON.parse(localStorage.getItem('registrosPonto')) || [];
     document.getElementById('totalRegistros').textContent = registros.length;
     document.getElementById('ultimoRegistro').textContent = localStorage.getItem('ultimoRegistro') || 'Nenhum';
+    atualizarInfoQtdCalculos();
 }
+
+// ================================================================
+// ==================== FAZER REGISTRO (DOWNLOAD CORRIGIDO) ====================
+// ================================================================
 
 function fazerRegistro() {
     const dados = {
@@ -1449,19 +1475,38 @@ function fazerRegistro() {
             mobile: MODO_MOBILE,
             tema: localStorage.getItem('tema')
         },
-        data: new Date().toLocaleString()
+        data: new Date().toLocaleString('pt-BR')
     };
     
-    const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `Registro_de_ponto_${new Date().toISOString().split('T')[0]}.json`;
-    link.click();
-    URL.revokeObjectURL(link.href);
+    const jsonString = JSON.stringify(dados, null, 2);
+    const nomeArquivo = `Registro_de_ponto_${new Date().toISOString().split('T')[0]}.json`;
     
-    localStorage.setItem('ultimoRegistro', new Date().toLocaleString());
-    mostrarToast(' Registro criado com sucesso!', 'success');
+    // ===== DOWNLOAD CORRIGIDO (appendChild + delay) =====
+    const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = nomeArquivo;
+    link.style.display = 'none';
+    
+    // ✅ ESSENCIAL: adicionar ao DOM antes do click
+    document.body.appendChild(link);
+    link.click();
+    
+    // ✅ ESSENCIAL: remover depois
+    document.body.removeChild(link);
+    
+    // ✅ ESSENCIAL: dar tempo antes de revogar a URL
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+    
+    localStorage.setItem('ultimoRegistro', new Date().toLocaleString('pt-BR'));
+    mostrarToast('📦 Registro criado com sucesso!', 'success');
 }
+
+// ================================================================
+// ==================== RESTAURAR REGISTRO ====================
+// ================================================================
 
 function restaurarRegistro(event) {
     const file = event.target.files[0];
@@ -1481,7 +1526,7 @@ function restaurarRegistro(event) {
                 if (dados.config.mobile) localStorage.setItem('configMobile', dados.config.mobile);
                 if (dados.config.tema) localStorage.setItem('tema', dados.config.tema);
             }
-            mostrarToast(' Registro restaurado com sucesso! Recarregando...', 'success');
+            mostrarToast('Registro restaurado com sucesso! Recarregando...', 'success');
             setTimeout(() => location.reload(), 1500);
         } catch (err) {
             mostrarToast('❌ Erro ao restaurar Registro: arquivo inválido', 'error');
@@ -1491,12 +1536,152 @@ function restaurarRegistro(event) {
     event.target.value = '';
 }
 
+// ================================================================
+// ==================== LIMPAR TODOS OS DADOS ====================
+// ================================================================
+
 function limparTodosDados() {
-    if (!confirm('️ Tem certeza que deseja limpar TODOS os dados? Esta ação é irreversível!')) return;
+    if (!confirm('Tem certeza que deseja limpar TODOS os dados? Esta ação é irreversível!')) return;
     if (!confirm('Confirme novamente: Limpar todos os dados do sistema?')) return;
     localStorage.clear();
     mostrarToast('🗑️ Todos os dados foram limpos!', 'warning');
     setTimeout(() => location.reload(), 1000);
+}
+
+// ================================================================
+// ==================== EXPORTAR CÁLCULOS SALVOS ====================
+// ================================================================
+
+function exportarCalculos() {
+    const registros = JSON.parse(localStorage.getItem('registrosPonto')) || [];
+    
+    if (registros.length === 0) {
+        mostrarToast('⚠️ Nenhum cálculo salvo para exportar!', 'warning');
+        return;
+    }
+    
+    // Monta o pacote
+    const pacote = {
+        tipo: 'backup_calculos',
+        versao: '2.0',
+        dataExportacao: new Date().toLocaleString('pt-BR'),
+        totalCalculos: registros.length,
+        registrosPonto: registros
+    };
+    
+    const jsonString = JSON.stringify(pacote, null, 2);
+    const data = new Date().toISOString().split('T')[0];
+    const hora = new Date().toTimeString().slice(0, 5).replace(':', 'h');
+    const nomeArquivo = `Backup_Calculos_${data}_${hora}.json`;
+    
+    // ===== DOWNLOAD CORRIGIDO =====
+    const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = nomeArquivo;
+    link.style.display = 'none';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+    
+    mostrarToast(`📦 ${registros.length} cálculo(s) exportado(s)!`, 'success');
+}
+
+// ================================================================
+// ==================== IMPORTAR CÁLCULOS SALVOS ====================
+// ================================================================
+
+function importarCalculos(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (!file.name.toLowerCase().endsWith('.json')) {
+        mostrarToast('❌ Selecione um arquivo .json', 'error');
+        event.target.value = '';
+        return;
+    }
+    
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+        try {
+            const dados = JSON.parse(e.target.result);
+            
+            // Aceita 2 formatos
+            let calculos = [];
+            if (Array.isArray(dados)) {
+                calculos = dados;
+            } else if (dados.registrosPonto && Array.isArray(dados.registrosPonto)) {
+                calculos = dados.registrosPonto;
+            } else {
+                throw new Error('Formato de arquivo não reconhecido');
+            }
+            
+            if (calculos.length === 0) {
+                mostrarToast('⚠️ Nenhum cálculo encontrado no arquivo.', 'warning');
+                event.target.value = '';
+                return;
+            }
+            
+            // Pergunta mesclar ou substituir
+            const atual = JSON.parse(localStorage.getItem('registrosPonto')) || [];
+            
+            const mensagem = 
+                `📦 Encontrados ${calculos.length} cálculo(s) no arquivo.\n\n` +
+                `✅ OK = ADICIONAR aos ${atual.length} já existentes\n` +
+                `❌ Cancelar = SUBSTITUIR todos os atuais`;
+            
+            if (confirm(mensagem)) {
+                // Mesclar: evita IDs duplicados
+                const idsExistentes = new Set(atual.map(r => r.id));
+                const novos = calculos.map(r => {
+                    if (idsExistentes.has(r.id)) {
+                        return { ...r, id: Date.now() + Math.floor(Math.random() * 10000) };
+                    }
+                    return r;
+                });
+                const todos = [...atual, ...novos];
+                localStorage.setItem('registrosPonto', JSON.stringify(todos));
+                mostrarToast(`✅ ${calculos.length} cálculo(s) adicionado(s)!`, 'success');
+            } else {
+                if (!confirm(`⚠️ Isso vai APAGAR os ${atual.length} cálculos atuais. Confirma?`)) {
+                    event.target.value = '';
+                    return;
+                }
+                localStorage.setItem('registrosPonto', JSON.stringify(calculos));
+                mostrarToast(`✅ ${calculos.length} cálculo(s) restaurado(s)!`, 'success');
+            }
+            
+            // Atualiza a interface
+            carregarRegistros();
+            atualizarInfoQtdCalculos();
+            
+        } catch (err) {
+            console.error(err);
+            mostrarToast('❌ Erro: ' + err.message, 'error');
+        }
+        
+        event.target.value = '';
+    };
+    
+    reader.readAsText(file);
+}
+
+// ================================================================
+// ==================== ATUALIZAR INFO QUANTIDADE ====================
+// ================================================================
+
+function atualizarInfoQtdCalculos() {
+    const registros = JSON.parse(localStorage.getItem('registrosPonto')) || [];
+    const el = document.getElementById('infoQtdCalculos');
+    if (el) {
+        el.textContent = `${registros.length} cálculo${registros.length !== 1 ? 's' : ''}`;
+    }
 }
 
 // ================================================================
@@ -1506,7 +1691,7 @@ function limparTodosDados() {
 function compartilharResultados() {
     calcularFolha();
     if (!window.dadosCalculados) {
-        mostrarToast('️ Calcule os resultados primeiro!', 'error');
+        mostrarToast('Calcule os resultados primeiro!', 'error');
         return;
     }
     
@@ -1549,13 +1734,13 @@ function salvarRegistro() {
     calcularFolha();
 
     if (!window.dadosCalculados) {
-        mostrarToast('️ Nenhum dado para salvar. Calcule os resultados primeiro!', 'error');
+        mostrarToast('Nenhum dado para salvar. Calcule os resultados primeiro!', 'error');
         return;
     }
 
     const temDados = window.dadosCalculados.linhas.some(l => l.entrada || l.saida);
     if (!temDados) {
-        mostrarToast('️ Nenhum horário preenchido para salvar!', 'error');
+        mostrarToast('Nenhum horário preenchido para salvar!', 'error');
         return;
     }
 
@@ -1591,7 +1776,6 @@ function confirmarSalvarCalculo() {
 
     const codID = sessionStorage.getItem('usuarioSenha') || '—';
 
-    // Recalcula para garantir dados atualizados
     calcularFolha();
 
     if (!window.dadosCalculados) {
@@ -1625,7 +1809,7 @@ function confirmarSalvarCalculo() {
         };
 
         localStorage.setItem('registrosPonto', JSON.stringify(registros));
-        mostrarToast(` Cálculo de "${nome}" atualizado com sucesso!`, 'success');
+        mostrarToast(`Cálculo de "${nome}" atualizado com sucesso!`, 'success');
 
         idRegistroEmEdicao = null;
     } else {
@@ -1646,8 +1830,11 @@ function confirmarSalvarCalculo() {
         registros.push(registro);
         localStorage.setItem('registrosPonto', JSON.stringify(registros));
 
-        mostrarToast(` Cálculo de "${nome}" salvo com sucesso!`, 'success');
+        mostrarToast(`Cálculo de "${nome}" salvo com sucesso!`, 'success');
     }
+
+    // Atualiza o contador no modal de Registro
+    atualizarInfoQtdCalculos();
 
     // Limpa os campos do modal
     document.getElementById('salvarNome').value = '';
@@ -1656,17 +1843,28 @@ function confirmarSalvarCalculo() {
 
     fecharModal('modalSalvarCalculo');
 
-    // Reseta o modo edição (por segurança)
     resetarModalSalvar();
 }
-document.getElementById('modalSalvarCalculo').addEventListener('click', function(e) {
-    if (e.target === this) fecharModal('modalSalvarCalculo');
-});
 
-document.getElementById('salvarNome')?.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        confirmarSalvarCalculo();
+document.addEventListener('DOMContentLoaded', function() {
+    const modalSalvar = document.getElementById('modalSalvarCalculo');
+    if (modalSalvar) {
+        modalSalvar.addEventListener('click', function(e) {
+            if (e.target === this) {
+                fecharModal('modalSalvarCalculo');
+                resetarModalSalvar();
+            }
+        });
+    }
+    
+    const salvarNome = document.getElementById('salvarNome');
+    if (salvarNome) {
+        salvarNome.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                confirmarSalvarCalculo();
+            }
+        });
     }
 });
 
@@ -1721,26 +1919,26 @@ function carregarRegistros() {
                     </div>
                     <div>
                         <div style="display:flex; gap:6px; flex-wrap:wrap;">
-    <button 
-        class="btn btn-warning"
-        style="padding:6px 12px;font-size:12px;"
-        onclick="editarRegistro(${reg.id})"
-        title="Editar este cálculo">
-        ✏️ Editar Cálculo
-    </button>
-    <button 
-        class="btn btn-purple"
-        style="padding:6px 12px;font-size:12px;"
-        onclick="imprimirRegistro(${reg.id})">
-        🖨️ Imprimir
-    </button>
-    <button 
-        class="btn btn-danger"
-        style="padding:6px 12px;font-size:12px;"
-        onclick="excluirRegistro(${reg.id})">
-        🗑️
-    </button>
-</div>
+                            <button 
+                                class="btn btn-warning"
+                                style="padding:6px 12px;font-size:12px;"
+                                onclick="editarRegistro(${reg.id})"
+                                title="Editar este cálculo">
+                                ✏️ Editar Cálculo
+                            </button>
+                            <button 
+                                class="btn btn-purple"
+                                style="padding:6px 12px;font-size:12px;"
+                                onclick="imprimirRegistro(${reg.id})">
+                                🖨️ Imprimir
+                            </button>
+                            <button 
+                                class="btn btn-danger"
+                                style="padding:6px 12px;font-size:12px;"
+                                onclick="excluirRegistro(${reg.id})">
+                                🗑️
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div style="margin-top:10px; font-size:13px; color:#64748b; overflow-x:auto;">
@@ -1762,8 +1960,8 @@ function carregarRegistros() {
                     <td>${l.saidaAlmoco}</td>
                     <td>${l.voltaAlmoco}</td>
                     <td>${l.saida}</td>
-                    <td>${l.isSabado ? '' : ''}</td>
-                    <td>${l.isFeriado ? '' : ''}</td>
+                    <td>${l.isSabado ? '✅' : ''}</td>
+                    <td>${l.isFeriado ? '✅' : ''}</td>
                     <td>${l.total}</td>
                     <td>${l.extra}</td>
                     <td>${l.valor || 'R$ 0,00'}</td>
@@ -1797,6 +1995,7 @@ function excluirRegistro(id) {
     registros = registros.filter(reg => reg.id !== id);
     localStorage.setItem('registrosPonto', JSON.stringify(registros));
     carregarRegistros();
+    atualizarInfoQtdCalculos();
     mostrarToast('🗑️ Registro excluído!', 'info');
 }
 
@@ -1817,10 +2016,8 @@ function editarRegistro(id) {
         return;
     }
 
-    // 1) Fecha o modal de consulta
     fecharModal('modalConsulta');
 
-    // 2) Preenche a tabela com os dados do registro
     const linhas = document.querySelectorAll("#tabelaBody tr");
 
     linhas.forEach((linha, index) => {
@@ -1853,24 +2050,19 @@ function editarRegistro(id) {
     marcarTodasLinhas();
     atualizarStatsResumo();
 
-    // 3) Guarda o ID do registro sendo editado
     idRegistroEmEdicao = id;
 
-    // 4) Recalcula a folha
     calcularFolha();
 
-    // 5) Preenche o resumo do modal
     document.getElementById('resumoExtra50').textContent = window.dadosCalculados.totalExtras;
     document.getElementById('resumoExtra100').textContent = window.dadosCalculados.totalFeriado;
     document.getElementById('resumoDias').textContent = window.dadosCalculados.totalDias;
 
-    // 6) Preenche os campos do modal com os dados do registro
     document.getElementById('salvarNome').value = registro.nomeFuncionario || '';
     document.getElementById('salvarCargo').value = registro.cargoFuncionario || '';
     document.getElementById('salvarMes').value = registro.mesReferencia || '';
     document.getElementById('salvarObs').value = registro.observacoes || '';
 
-    // 7) Muda o título e o botão do modal
     const tituloModal = document.querySelector('#modalSalvarCalculo h2');
     if (tituloModal) {
         tituloModal.innerHTML = '<i class="fas fa-edit"></i> Editar Cálculo';
@@ -1881,7 +2073,6 @@ function editarRegistro(id) {
         btnSalvar.innerHTML = '<i class="fas fa-save"></i> Atualizar Cálculo';
     }
 
-    // 8) Abre o modal
     document.getElementById('modalSalvarCalculo').style.display = 'block';
     setTimeout(() => document.getElementById('salvarNome').focus(), 100);
 
@@ -1905,6 +2096,7 @@ function resetarModalSalvar() {
         btnSalvar.innerHTML = '<i class="fas fa-save"></i> Salvar Cálculo';
     }
 }
+
 // ================================================================
 // ==================== IMPRIMIR REGISTRO ====================
 // ================================================================
@@ -1927,7 +2119,6 @@ function imprimirRegistro(id) {
     const obsfunc = registro.observacoes || '';
     const codIDfunc = registro.codID || '—';
 
-    // Cria as linhas da tabela
     let linhasTabela = '';
 
     dados.linhas.forEach(l => {
@@ -1951,7 +2142,6 @@ function imprimirRegistro(id) {
         }
     });
 
-    // Abre nova janela para impressão
     const janela = window.open('', '_blank', 'width=1200,height=800');
 
     if (!janela) {
@@ -1964,7 +2154,7 @@ function imprimirRegistro(id) {
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-   <title>Relatório - ${nomefunc} - ${mesref || 'Ponto'}</title>
+    <title>Relatório - ${nomefunc} - ${mesref || 'Ponto'}</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -2207,11 +2397,17 @@ function exportarExcel() {
     csv += `Dias com Extra,${window.dadosCalculados.diasExtra},,,,,,,,,,\n`;
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
+    link.href = url;
     link.download = `ponto_${new Date().toLocaleDateString().replace(/\//g, '-')}.csv`;
+    link.style.display = 'none';
+    
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(link.href);
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+    
     mostrarToast('📊 Excel exportado com sucesso!', 'success');
 }
 
@@ -2265,7 +2461,7 @@ function importarCSV() {
                 });
                 
                 marcarTodasLinhas();
-                mostrarToast(` ${importados} dias importados com sucesso!`, 'success');
+                mostrarToast(`${importados} dias importados com sucesso!`, 'success');
                 atualizarStatsResumo();
             } catch (err) {
                 mostrarToast('❌ Erro ao importar CSV: formato inválido', 'error');
@@ -2284,15 +2480,15 @@ function fecharModal(id) {
     document.getElementById(id).style.display = 'none';
 }
 
-window.onclick = function(event) {
+window.addEventListener('click', function(event) {
     const modais = ['modalConsulta', 'modalDashboard', 'modalCalendario', 'modalConfig', 'modalRegistro', 'modalPreencherPadrao', 'modalMovimentacao', 'modalSalvarCalculo'];
     modais.forEach(id => {
         const modal = document.getElementById(id);
-        if (event.target == modal) {
+        if (modal && event.target == modal) {
             modal.style.display = 'none';
         }
     });
-};
+});
 
 // ================================================================
 // ==================== PREVENÇÃO DE PERDA ====================
@@ -2336,7 +2532,6 @@ function verificarLogin() {
     }
 
     if (SNPTC.includes(senha)) {
-        // Sucesso — guarda a senha para usar como cod-ID
         sessionStorage.setItem('autenticado', 'true');
         sessionStorage.setItem('usuarioSenha', senha);
         document.getElementById('telaLogin').classList.add('escondida');
@@ -2344,7 +2539,6 @@ function verificarLogin() {
         input.value = '';
         mostrarToast('Bem-vindo!', 'success');
     } else {
-        // Erro
         erro.textContent = '❌ Senha incorreta. Tente novamente.';
         box.classList.add('erro');
         setTimeout(() => box.classList.remove('erro'), 400);
@@ -2380,7 +2574,9 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('🚀 Calculadora Profissional de Ponto carregada com sucesso!');
-console.log(' Tela de login com cod-ID');
-console.log(' Modal de salvar com nome do funcionário');
-console.log(' Relatório com cod-ID, nome, cargo e mês');
-console.log(' ✅ Contagem de Dias com Extra UNIFICADA em todos os lugares');
+console.log('✅ Tela de login com cod-ID');
+console.log('✅ Modal de salvar com nome do funcionário');
+console.log('✅ Relatório com cod-ID, nome, cargo e mês');
+console.log('✅ Contagem de Dias com Extra UNIFICADA em todos os lugares');
+console.log('✅ NOVO: Exportar/Importar Cálculos Salvos (Backup)');
+console.log('✅ Download corrigido (appendChild + delay revokeObjectURL)');
