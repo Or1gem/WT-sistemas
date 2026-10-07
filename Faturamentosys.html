@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Faturamento</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+  * { box-sizing: border-box; font-family: Arial, sans-serif; }
+  body { margin:0; background:#f0f2f5; color:#222; }
+  header { background:#1e3a8a; color:#fff; padding:15px 25px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+  header h1 { margin:0; font-size:20px; }
+  .container { max-width:1200px; margin:20px auto; padding:0 15px; }
+  .card { background:#fff; border-radius:8px; padding:20px; margin-bottom:20px; box-shadow:0 2px 6px rgba(0,0,0,.08); }
+  .card h2 { margin-top:0; font-size:16px; color:#1e3a8a; border-bottom:1px solid #e5e7eb; padding-bottom:8px; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:12px; }
+  label { display:block; font-size:12px; font-weight:bold; color:#555; margin-bottom:4px; }
+  input, select { width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:5px; font-size:14px; }
+  input:focus, select:focus { outline:none; border-color:#1e3a8a; }
+  input[readonly] { background:#f1f5f9; color:#64748b; cursor:not-allowed; }
+  button { background:#1e3a8a; color:#fff; border:none; padding:10px 18px; border-radius:5px; cursor:pointer; font-size:14px; font-weight:bold; }
+  button:hover { background:#152a63; }
+  button.danger { background:#dc2626; }
+  button.danger:hover { background:#a91d1d; }
+  button.success { background:#16a34a; }
+  button.success:hover { background:#0f7a37; }
+  button.ghost { background:#e2e8f0; color:#1e3a8a; }
+  button.ghost:hover { background:#cbd5e1; }
+  button.warn { background:#f59e0b; }
+  button.warn:hover { background:#d97706; }
+  button.small { padding:4px 10px; font-size:12px; }
+  table { width:100%; border-collapse:collapse; margin-top:10px; }
+  th, td { padding:8px; border-bottom:1px solid #e5e7eb; font-size:14px; text-align:left; vertical-align:middle; }
+  th { background:#f1f5f9; font-size:12px; text-transform:uppercase; color:#475569; }
+  tfoot td { font-weight:bold; background:#f8fafc; }
+  .acoes { display:flex; gap:10px; flex-wrap:wrap; }
+  .empty { text-align:center; color:#94a3b8; padding:20px; font-style:italic; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:bold; }
+  .badge.realizado { background:#dcfce7; color:#166534; }
+  .badge.previsto { background:#fef3c7; color:#92400e; }
+  .input-edit { padding:5px; font-size:13px; width:140px; text-align:right; }
+  .input-ano { padding:5px; font-size:13px; width:80px; }
+  .linha-editando { background:#fffbeb; }
+  .info { font-size:12px; color:#64748b; margin-top:6px; }
+  .preview-topo { padding:15px 0; border-bottom:1px solid #e5e7eb; margin-bottom:15px; }
+  .preview-topo .centro { text-align:center; }
+  .preview-topo .titulo { font-size:18px; font-weight:bold; color:#1e3a8a; }
+  .preview-topo .periodo { font-size:14px; color:#475569; margin-top:4px; }
+  .preview-topo .esquerda { text-align:left; margin-top:15px; }
+  .preview-topo .empresa { font-size:15px; font-weight:bold; }
+  .preview-topo .cnpj { font-size:12px; color:#475569; margin-top:2px; }
+  .resumo-total { margin-top:15px; text-align:right; font-size:16px; }
+  .resumo-total span { background:#e0e7ff; color:#1e3a8a; padding:10px 20px; border-radius:6px; font-weight:bold; }
+  .registro-acoes { display:flex; gap:10px; flex-wrap:wrap; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>💰Faturamento</h1>
+  <div class="acoes">
+    <button class="success" onclick="gerarPDF()">📄 Gerar PDF</button>
+    <button class="danger" onclick="limparTudo()">🗑️ Limpar</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- DADOS DA EMPRESA -->
+  <div class="card">
+    <h2>1. Dados da Empresa</h2>
+    <div class="grid">
+      <div><label>Empresa</label><input id="empresa" placeholder="F. R. NOGUEIRA DA SILVA"></div>
+      <div><label>CNPJ</label><input id="cnpj" placeholder="11.782.306/0001-63"></div>
+      <div><label>Período</label><input id="periodo" placeholder="2025/2026"></div>
+      <div><label>Titular / Proprietário</label><input id="titular" placeholder="NOME DO PROPRIETÁRIO"></div>
+      <div><label>CPF do Titular</label><input id="cpfTitular" placeholder="000.000.000-00"></div>
+    </div>
+  </div>
+
+  <!-- CONTADOR FIXO -->
+  <div class="card">
+    <h2>2. Contador</h2>
+    <div class="grid">
+      <div><label>Contador</label><input id="contador" value="Humberto Lima Gomes" readonly></div>
+      <div><label>CPF do Contador</label><input id="cpfContador" value="012.673.572-74" readonly></div>
+      <div><label>CRC</label><input id="crc" value="CRC-AP 002596/O-4" readonly></div>
+    </div>
+  </div>
+
+  <!-- GERAR 12 MESES AUTOMÁTICO -->
+  <div class="card">
+    <h2>3. ⚡ Gerar 12 meses automaticamente</h2>
+    <div class="grid">
+      <div><label>Ano</label><input id="anoAuto" type="number" value="2025"></div>
+      <div><label>Valor total (R$)</label><input id="valorAuto" type="text" inputmode="numeric" placeholder="1.000.000,00"></div>
+      <div>
+        <label>Modo de distribuição</label>
+        <select id="modoAuto">
+          <option value="igual">Igual (mesmo valor em todos)</option>
+          <option value="igual_arredondado">Igual arredondado (ex: 50.000)</option>
+          <option value="crescente">Crescente (começa menor, termina maior)</option>
+        </select>
+      </div>
+      <div style="display:flex; align-items:flex-end;">
+        <button onclick="gerar12Meses()">⚡ Gerar 12 meses</button>
+      </div>
+    </div>
+    <div class="info">💡 Digite só os números: <b>100000000</b> vira <b>1.000.000,00</b> automaticamente.</div>
+  </div>
+
+  <!-- ADICIONAR MÊS MANUAL -->
+  <div class="card">
+    <h2>4. Adicionar mês individual</h2>
+    <div class="grid">
+      <div>
+        <label>Mês</label>
+        <select id="mes">
+          <option>janeiro</option><option>fevereiro</option><option>março</option>
+          <option>abril</option><option>maio</option><option>junho</option>
+          <option>julho</option><option>agosto</option><option>setembro</option>
+          <option>outubro</option><option>novembro</option><option>dezembro</option>
+        </select>
+      </div>
+      <div><label>Ano</label><input id="ano" type="number" value="2025"></div>
+      <div>
+        <label>Tipo</label>
+        <select id="tipo">
+          <option value="Realizado">Realizado</option>
+          <option value="Previsto">Previsto</option>
+        </select>
+      </div>
+      <div><label>Faturamento (R$)</label><input id="valor" type="text" inputmode="numeric" placeholder="11.000,00"></div>
+      <div style="display:flex; align-items:flex-end;">
+        <button onclick="adicionarMes()">➕ Adicionar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABELA -->
+  <div class="card">
+    <h2>5. Faturamento Detalhado (12 meses)</h2>
+
+    <!-- Preview do cabeçalho que sai no PDF -->
+    <div class="preview-topo">
+      <div class="centro">
+        <div class="titulo">Faturamento Realizado</div>
+        <div class="periodo" id="previewPeriodo">2025/2026</div>
+      </div>
+      <div class="esquerda">
+        <div class="empresa" id="previewEmpresa">F. R. NOGUEIRA DA SILVA</div>
+        <div class="cnpj" id="previewCnpj">CNPJ: 11.782.306/0001-63</div>
+      </div>
+    </div>
+
+    <table id="tabela">
+      <thead>
+        <tr>
+          <th>Mês</th><th>Ano</th><th>Realizado</th>
+          <th style="text-align:right">Faturamento em R$</th>
+          <th style="width:140px">Ação</th>
+        </tr>
+      </thead>
+      <tbody id="corpoTabela"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="3" style="text-align:right">Total</td>
+          <td id="total" style="text-align:right">R$ 0,00</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <div class="resumo-total">
+      Total Geral: <span id="totalGeral">R$ 0,00</span>
+    </div>
+  </div>
+
+  <!-- REGISTRO (BACKUP) -->
+  <div class="card">
+    <h2>6. 📦 Registro (salvar / restaurar)</h2>
+    <div class="registro-acoes">
+      <button class="warn" onclick="exportarRegistro()">💾 Salvar Registro</button>
+      <button class="ghost" onclick="document.getElementById('arquivoRegistro').click()">📂 Restaurar Registro</button>
+      <input type="file" id="arquivoRegistro" accept=".json" style="display:none" onchange="importarRegistro(event)">
+    </div>
+    <div class="info">💡 <b>Salvar Registro</b> baixa um arquivo <code>.json</code> com todos os dados. <b>Restaurar Registro</b> carrega o arquivo de volta (substitui os dados atuais).</div>
+  </div>
+
+</div>
+
+<script>
+// ====== ESTADO ======
+let dados = JSON.parse(localStorage.getItem('fat_dados') || '[]');
+let linhaEditando = -1;
+
+// ====== EMPRESA ======
+const camposEmpresa = ['empresa','cnpj','periodo','titular','cpfTitular'];
+const empresaSalva = JSON.parse(localStorage.getItem('fat_empresa') || '{}');
+camposEmpresa.forEach(id => {
+  if (empresaSalva[id]) document.getElementById(id).value = empresaSalva[id];
+  document.getElementById(id).addEventListener('input', () => { salvarEmpresa(); render(); });
+});
+
+function salvarEmpresa() {
+  const obj = {};
+  camposEmpresa.forEach(id => obj[id] = document.getElementById(id).value);
+  localStorage.setItem('fat_empresa', JSON.stringify(obj));
+}
+
+// ====== HELPERS ======
+function formatarMoeda(v) {
+  return v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
+}
+function salvar() { localStorage.setItem('fat_dados', JSON.stringify(dados)); }
+
+const MESES = ['janeiro','fevereiro','março','abril','maio','junho',
+               'julho','agosto','setembro','outubro','novembro','dezembro'];
+
+// ====== MÁSCARA DE MOEDA ======
+// Recebe o input do usuário (só números) e devolve "12.345,67"
+function aplicarMascaraMoeda(input) {
+  let v = input.value.replace(/\D/g, ''); // remove tudo que não é dígito
+  if (v === '') { input.value = ''; return; }
+  // mantém no máximo 2 dígitos decimais: os 2 últimos são centavos
+  v = v.replace(/^0+/, '') || '0';
+  while (v.length < 3) v = '0' + v; // ex: "5" → "005" → 0,05
+  const inteiros = v.slice(0, -2);
+  const centavos = v.slice(-2);
+  const inteirosFmt = parseInt(inteiros, 10).toLocaleString('pt-BR');
+  input.value = inteirosFmt + ',' + centavos;
+}
+
+// Converte "12.345,67" → 12345.67
+function parseMoeda(str) {
+  if (typeof str === 'number') return str;
+  if (!str) return NaN;
+  const limpo = String(str).replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g,'');
+  return parseFloat(limpo);
+}
+
+// Aplica máscara em tempo real nos campos de valor
+['valor','valorAuto'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('input', () => aplicarMascaraMoeda(el));
+});
+
+// ====== ADICIONAR / REMOVER ======
+function adicionarMes() {
+  const mes   = document.getElementById('mes').value;
+  const ano   = document.getElementById('ano').value;
+  const tipo  = document.getElementById('tipo').value;
+  const valor = parseMoeda(document.getElementById('valor').value);
+
+  if (!ano || isNaN(valor)) { alert('Preencha o ano e o valor!'); return; }
+
+  dados.push({ mes, ano, tipo, valor });
+  document.getElementById('valor').value = '';
+  salvar(); render();
+}
+
+function removerMes(i) {
+  if (!confirm('Remover este mês?')) return;
+  if (linhaEditando === i) linhaEditando = -1;
+  dados.splice(i,1);
+  salvar(); render();
+}
+
+// ====== EDITAR ======
+function editarMes(i) {
+  linhaEditando = i;
+  render();
+  // Aplica máscara no input de edição que acabou de ser criado
+  const inp = document.getElementById('editValor_' + i);
+  if (inp) {
+    // já vem no formato "12345.67" → transforma em "12.345,67"
+    inp.value = Number(dados[i].valor).toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+    inp.addEventListener('input', () => aplicarMascaraMoeda(inp));
+  }
+}
+function cancelarEdicao() {
+  linhaEditando = -1;
+  render();
+}
+function salvarEdicao(i) {
+  const inputValor = document.getElementById('editValor_' + i);
+  const inputTipo  = document.getElementById('editTipo_' + i);
+  const inputAno   = document.getElementById('editAno_' + i);
+  const inputMes   = document.getElementById('editMes_' + i);
+
+  const novoValor = parseMoeda(inputValor.value);
+  const novoTipo  = inputTipo.value;
+  const novoAno   = inputAno.value;
+  const novoMes   = inputMes.value;
+
+  if (isNaN(novoValor)) { alert('Valor inválido!'); return; }
+  if (!novoAno) { alert('Ano inválido!'); return; }
+
+  dados[i].valor = novoValor;
+  dados[i].tipo  = novoTipo;
+  dados[i].ano   = novoAno;
+  dados[i].mes   = novoMes;
+  linhaEditando = -1;
+  salvar(); render();
+}
+
+// ====== GERAR 12 MESES AUTOMÁTICO ======
+function gerar12Meses() {
+  const ano   = parseInt(document.getElementById('anoAuto').value);
+  const total = parseMoeda(document.getElementById('valorAuto').value);
+  const modo  = document.getElementById('modoAuto').value;
+
+  if (!ano || isNaN(total) || total <= 0) {
+    alert('Preencha o ano e o valor total!'); return;
+  }
+
+  if (!confirm(`Isso vai substituir TODOS os meses por 12 novos meses de ${ano}.\nContinuar?`)) return;
+
+  dados = [];
+  let valores = [];
+
+  if (modo === 'igual') {
+    const v = total / 12;
+    valores = Array(12).fill(v);
+  }
+  else if (modo === 'igual_arredondado') {
+    const v = Math.floor((total / 12) / 1000) * 1000;
+    valores = Array(12).fill(v);
+    const diff = total - (v * 12);
+    valores[11] += diff;
+  }
+  else if (modo === 'crescente') {
+    const somaPesos = (12 * 13) / 2;
+    for (let i = 1; i <= 12; i++) valores.push((total * i) / somaPesos);
+    let somaAte = 0;
+    for (let i = 0; i < 11; i++) {
+      valores[i] = Math.round(valores[i] / 100) * 100;
+      somaAte += valores[i];
+    }
+    valores[11] = total - somaAte;
+  }
+
+  MESES.forEach((m, i) => {
+    dados.push({ mes: m, ano: ano, tipo: 'Realizado', valor: valores[i] });
+  });
+
+  salvar(); render();
+  alert('✅ 12 meses gerados!');
+}
+
+// ====== RENDER ======
+function render() {
+  const corpo   = document.getElementById('corpoTabela');
+  const totalEl = document.getElementById('total');
+  const totalGeralEl = document.getElementById('totalGeral');
+
+  document.getElementById('previewPeriodo').textContent = document.getElementById('periodo').value || '';
+  document.getElementById('previewEmpresa').textContent = document.getElementById('empresa').value || '';
+  document.getElementById('previewCnpj').textContent = 'CNPJ: ' + (document.getElementById('cnpj').value || '');
+
+  if (dados.length === 0) {
+    corpo.innerHTML = '<tr><td colspan="5" class="empty">Nenhum mês adicionado ainda.</td></tr>';
+    totalEl.textContent = 'R$ 0,00';
+    totalGeralEl.textContent = 'R$ 0,00';
+    return;
+  }
+
+  let total = 0;
+  corpo.innerHTML = dados.map((d, i) => {
+    total += d.valor;
+
+    if (linhaEditando === i) {
+      const opcoesMes = MESES.map(m =>
+        `<option value="${m}" ${d.mes===m?'selected':''}>${m}</option>`
+      ).join('');
+
+      return `<tr class="linha-editando">
+        <td>
+          <select id="editMes_${i}" style="padding:4px;font-size:13px">
+            ${opcoesMes}
+          </select>
+        </td>
+        <td>
+          <input id="editAno_${i}" class="input-ano" type="number" value="${d.ano}">
+        </td>
+        <td>
+          <select id="editTipo_${i}" style="padding:4px;font-size:13px">
+            <option value="Realizado" ${d.tipo==='Realizado'?'selected':''}>Realizado</option>
+            <option value="Previsto"  ${d.tipo==='Previsto'?'selected':''}>Previsto</option>
+          </select>
+        </td>
+        <td style="text-align:right">
+          <input id="editValor_${i}" class="input-edit" type="text" inputmode="numeric"
+                 value="${Number(d.valor).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}">
+        </td>
+        <td>
+          <button class="success small" onclick="salvarEdicao(${i})">✔</button>
+          <button class="ghost small" onclick="cancelarEdicao()">✖</button>
+        </td>
+      </tr>`;
+    }
+
+    const badge = d.tipo === 'Realizado' ? 'realizado' : 'previsto';
+    return `<tr>
+      <td style="text-transform:capitalize">${d.mes}</td>
+      <td>${d.ano}</td>
+      <td><span class="badge ${badge}">${d.tipo}</span></td>
+      <td style="text-align:right">${formatarMoeda(d.valor)}</td>
+      <td>
+        <button class="ghost small" onclick="editarMes(${i})">✏️ Editar</button>
+        <button class="danger small" onclick="removerMes(${i})">X</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  totalEl.textContent = formatarMoeda(total);
+  totalGeralEl.textContent = formatarMoeda(total);
+
+  // Aplica máscara no input de edição ativo (se houver)
+  if (linhaEditando >= 0) {
+    const inp = document.getElementById('editValor_' + linhaEditando);
+    if (inp) inp.addEventListener('input', () => aplicarMascaraMoeda(inp));
+  }
+}
+
+function limparTudo() {
+  if (!confirm('Apagar TODOS os meses?')) return;
+  dados = []; linhaEditando = -1; salvar(); render();
+}
+
+// ====== REGISTRO (SALVAR / RESTAURAR) ======
+function exportarRegistro() {
+  const pacote = {
+    tipo: 'registro-faturamento',
+    versao: 1,
+    geradoEm: new Date().toISOString(),
+    empresa: {
+      empresa:   document.getElementById('empresa').value,
+      cnpj:      document.getElementById('cnpj').value,
+      periodo:   document.getElementById('periodo').value,
+      titular:   document.getElementById('titular').value,
+      cpfTitular:document.getElementById('cpfTitular').value
+    },
+    contador: {
+      contador:    document.getElementById('contador').value,
+      cpfContador: document.getElementById('cpfContador').value,
+      crc:         document.getElementById('crc').value
+    },
+    meses: dados
+  };
+
+  const blob = new Blob([JSON.stringify(pacote, null, 2)], { type:'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const nomeEmp = (pacote.empresa.empresa || 'REGISTRO').replace(/\s+/g,'_').toUpperCase();
+  a.href = url;
+  a.download = 'REGISTRO_' + nomeEmp + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importarRegistro(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const pacote = JSON.parse(e.target.result);
+
+      if (!pacote.meses || !Array.isArray(pacote.meses)) {
+        alert('Arquivo de registro inválido.'); return;
+      }
+
+      if (!confirm('Restaurar este registro? Os dados atuais serão substituídos.')) return;
+
+      // Empresa
+      if (pacote.empresa) {
+        ['empresa','cnpj','periodo','titular','cpfTitular'].forEach(k => {
+          if (pacote.empresa[k] !== undefined)
+            document.getElementById(k).value = pacote.empresa[k];
+        });
+        salvarEmpresa();
+      }
+
+      // Meses
+      dados = pacote.meses;
+      salvar(); render();
+
+      alert('✅ Registro restaurado com sucesso!');
+    } catch (err) {
+      alert('Erro ao ler o arquivo: ' + err.message);
+    } finally {
+      event.target.value = ''; // permite importar o mesmo arquivo novamente
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ====== GERAR PDF ======
+function gerarPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const W = 210;
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(14);
+  doc.text('Faturamento Realizado', W/2, 18, { align:'center' });
+
+  doc.setFontSize(11);
+  doc.text(document.getElementById('periodo').value || '', W/2, 25, { align:'center' });
+
+  doc.setFontSize(12);
+  doc.text(document.getElementById('empresa').value || '', 14, 36);
+
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(10);
+  doc.text('CNPJ: ' + (document.getElementById('cnpj').value || ''), 14, 42);
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(11);
+  doc.text('1. Faturamento Detalhado Previsto e Realizado de 12 Meses.', 14, 53);
+
+  const linhas = dados.map(d => [d.mes, d.ano, d.tipo, formatarMoeda(d.valor)]);
+  const total = dados.reduce((s,d) => s + d.valor, 0);
+
+  doc.autoTable({
+    startY: 58,
+    head: [['Mês','Ano','Realizado','Faturamento em R$']],
+    body: linhas,
+    foot: [['Total','','Previsto/Realizado', formatarMoeda(total)]],
+    theme: 'grid',
+    headStyles: { fillColor:[30,58,138], textColor:255, fontStyle:'bold', halign:'center' },
+    footStyles: { fillColor:[241,245,249], textColor:0, fontStyle:'bold' },
+    styles: { fontSize:10, cellPadding:3, lineColor:[180,180,180], lineWidth:0.2 },
+    columnStyles: {
+      0: { cellWidth: 35, halign:'left' },
+      1: { cellWidth: 25, halign:'center' },
+      2: { cellWidth: 40, halign:'center' },
+      3: { cellWidth: 'auto', halign:'right' }
+    }
+  });
+
+  let y = doc.lastAutoTable.finalY + 15;
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(11);
+  doc.text('2. Faturamento Total Previsto e Realizado de 12 Meses', 14, y);
+
+  y += 8;
+  doc.autoTable({
+    startY: y,
+    head: [['Total']],
+    body: [[formatarMoeda(total)]],
+    theme: 'grid',
+    headStyles: { fillColor:[30,58,138], textColor:255, fontStyle:'bold', halign:'center' },
+    styles: { fontSize:10, cellPadding:3, lineColor:[180,180,180], lineWidth:0.2, halign:'center' },
+    tableWidth: 70
+  });
+
+  y = doc.lastAutoTable.finalY + 30;
+  const xEsquerda = 14;
+  const xDireita  = 120;
+  const larguraLinha = 70;
+
+  doc.setDrawColor(0,0,0);
+  doc.setLineWidth(0.3);
+  doc.line(xEsquerda, y, xEsquerda + larguraLinha, y);
+  doc.line(xDireita, y, xDireita + larguraLinha, y);
+
+  const cxEsq = xEsquerda + larguraLinha/2;
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(10);
+  doc.text(document.getElementById('titular').value || '', cxEsq, y + 6, { align:'center' });
+
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(9);
+  doc.text('CPF: ' + (document.getElementById('cpfTitular').value || ''), cxEsq, y + 11, { align:'center' });
+
+  const cxDir = xDireita + larguraLinha/2;
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(10);
+  doc.text('Contador: ' + document.getElementById('contador').value, cxDir, y + 6, { align:'center' });
+
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(9);
+  doc.text('CPF: ' + document.getElementById('cpfContador').value, cxDir, y + 11, { align:'center' });
+  doc.text(document.getElementById('crc').value, cxDir, y + 16, { align:'center' });
+
+  const nome = 'FATURAMENTO_' +
+    (document.getElementById('empresa').value || 'EMPRESA').replace(/\s+/g,'_').toUpperCase() +
+    '.pdf';
+  doc.save(nome);
+}
+
+// ====== INICIALIZAR ======
+render();
+</script>
+</body>
+</html>
