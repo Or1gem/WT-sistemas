@@ -7,18 +7,18 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
   * { box-sizing: border-box; font-family: Arial, sans-serif; }
-  body { margin:0; background:#f0f2f5; color:#222; }
-  header { background:#1e3a8a; color:#fff; padding:15px 25px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
-  header h1 { margin:0; font-size:20px; }
-  .container { max-width:1200px; margin:20px auto; padding:0 15px; }
-  .card { background:#fff; border-radius:8px; padding:20px; margin-bottom:20px; box-shadow:0 2px 6px rgba(0,0,0,.08); }
-  .card h2 { margin-top:0; font-size:16px; color:#1e3a8a; border-bottom:1px solid #e5e7eb; padding-bottom:8px; }
-  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:12px; }
-  label { display:block; font-size:12px; font-weight:bold; color:#555; margin-bottom:4px; }
-  input, select { width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:5px; font-size:14px; }
-  input:focus, select:focus { outline:none; border-color:#1e3a8a; }
+  body { margin:0; background:#f0f2f5; color:#222; font-size:13px; }
+  header { background:#1e3a8a; color:#fff; padding:10px 18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+  header h1 { margin:0; font-size:17px; }
+  .container { max-width:1100px; margin:14px auto; padding:0 12px; }
+  .card { background:#fff; border-radius:6px; padding:12px 14px; margin-bottom:12px; box-shadow:0 1px 4px rgba(0,0,0,.08); }
+  .card h2 { margin:0 0 8px 0; font-size:13px; color:#1e3a8a; border-bottom:1px solid #e5e7eb; padding-bottom:5px; display:flex; justify-content:space-between; align-items:center; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap:8px; }
+  label { display:block; font-size:10px; font-weight:bold; color:#555; margin-bottom:2px; text-transform:uppercase; letter-spacing:.3px; }
+  input, select { width:100%; padding:4px 6px; border:1px solid #cbd5e1; border-radius:4px; font-size:12px; height:28px; }
+  input:focus, select:focus { outline:none; border-color:#1e3a8a; box-shadow:0 0 0 2px rgba(30,58,138,.12); }
   input[readonly] { background:#f1f5f9; color:#64748b; cursor:not-allowed; }
-  button { background:#1e3a8a; color:#fff; border:none; padding:10px 18px; border-radius:5px; cursor:pointer; font-size:14px; font-weight:bold; }
+  button { background:#1e3a8a; color:#fff; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold; height:28px; white-space:nowrap; transition:background .15s; }
   button:hover { background:#152a63; }
   button.danger { background:#dc2626; }
   button.danger:hover { background:#a91d1d; }
@@ -28,36 +28,40 @@
   button.ghost:hover { background:#cbd5e1; }
   button.warn { background:#f59e0b; }
   button.warn:hover { background:#d97706; }
-  button.small { padding:4px 10px; font-size:12px; }
-  table { width:100%; border-collapse:collapse; margin-top:10px; }
-  th, td { padding:8px; border-bottom:1px solid #e5e7eb; font-size:14px; text-align:left; vertical-align:middle; }
-  th { background:#f1f5f9; font-size:12px; text-transform:uppercase; color:#475569; }
+  button.small { padding:2px 6px; font-size:10px; height:22px; }
+  table { width:100%; border-collapse:collapse; margin-top:6px; }
+  th, td { padding:5px 6px; border-bottom:1px solid #e5e7eb; font-size:12px; text-align:left; vertical-align:middle; }
+  th { background:#f1f5f9; font-size:10px; text-transform:uppercase; color:#475569; letter-spacing:.3px; }
   tfoot td { font-weight:bold; background:#f8fafc; }
-  .acoes { display:flex; gap:10px; flex-wrap:wrap; }
-  .empty { text-align:center; color:#94a3b8; padding:20px; font-style:italic; }
-  .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:bold; }
+  .acoes { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .empty { text-align:center; color:#94a3b8; padding:14px; font-style:italic; font-size:12px; }
+  .badge { display:inline-block; padding:1px 6px; border-radius:8px; font-size:10px; font-weight:bold; }
   .badge.realizado { background:#dcfce7; color:#166534; }
   .badge.previsto { background:#fef3c7; color:#92400e; }
-  .input-edit { padding:5px; font-size:13px; width:140px; text-align:right; }
-  .input-ano { padding:5px; font-size:13px; width:80px; }
+  .input-edit { padding:3px 5px; font-size:11px; width:110px; text-align:right; height:24px; }
+  .input-ano { padding:3px 5px; font-size:11px; width:65px; height:24px; }
   .linha-editando { background:#fffbeb; }
-  .info { font-size:12px; color:#64748b; margin-top:6px; }
-  .preview-topo { padding:15px 0; border-bottom:1px solid #e5e7eb; margin-bottom:15px; }
+  .info { font-size:10px; color:#64748b; margin-top:4px; line-height:1.4; }
+  .preview-topo { padding:8px 0; border-bottom:1px solid #e5e7eb; margin-bottom:8px; }
   .preview-topo .centro { text-align:center; }
-  .preview-topo .titulo { font-size:18px; font-weight:bold; color:#1e3a8a; }
-  .preview-topo .periodo { font-size:14px; color:#475569; margin-top:4px; }
-  .preview-topo .esquerda { text-align:left; margin-top:15px; }
-  .preview-topo .empresa { font-size:15px; font-weight:bold; }
-  .preview-topo .cnpj { font-size:12px; color:#475569; margin-top:2px; }
-  .resumo-total { margin-top:15px; text-align:right; font-size:16px; }
-  .resumo-total span { background:#e0e7ff; color:#1e3a8a; padding:10px 20px; border-radius:6px; font-weight:bold; }
-  .registro-acoes { display:flex; gap:10px; flex-wrap:wrap; }
+  .preview-topo .titulo { font-size:14px; font-weight:bold; color:#1e3a8a; }
+  .preview-topo .periodo { font-size:11px; color:#475569; margin-top:2px; }
+  .preview-topo .esquerda { text-align:left; margin-top:8px; }
+  .preview-topo .empresa { font-size:12px; font-weight:bold; }
+  .preview-topo .cnpj { font-size:10px; color:#475569; margin-top:1px; }
+  .resumo-total { margin-top:8px; text-align:right; font-size:13px; }
+  .resumo-total span { background:#e0e7ff; color:#1e3a8a; padding:5px 12px; border-radius:5px; font-weight:bold; font-size:13px; }
+  .registro-acoes { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .botao-limpar-campos { float:right; margin-top:-2px; }
+  /* Ajuste fino para selects e inputs dentro de grids */
+  .grid > div { display:flex; flex-direction:column; }
+  .grid > div > button { margin-top:auto; }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>💰Faturamento</h1>
+  <h1>💰 Faturamento</h1>
   <div class="acoes">
     <button class="success" onclick="gerarPDF()">📄 Gerar PDF</button>
     <button class="danger" onclick="limparTudo()">🗑️ Limpar</button>
@@ -69,14 +73,14 @@
   <!-- DADOS DA EMPRESA -->
   <div class="card">
     <h2>1. Dados da Empresa
-      <button class="ghost small" style="float:right; margin-top:-2px" onclick="limparEmpresa()">🧹 Limpar Campos</button>
+      <button class="ghost small botao-limpar-campos" onclick="limparEmpresa()">🧹 Limpar Campos</button>
     </h2>
     <div class="grid">
       <div><label>Empresa</label><input id="empresa" placeholder="F. R. NOGUEIRA DA SILVA"></div>
       <div><label>CNPJ</label><input id="cnpj" placeholder="11.782.306/0001-63"></div>
       <div><label>Período</label><input id="periodo" placeholder="2025/2026"></div>
       <div><label>Titular / Proprietário</label><input id="titular" placeholder="NOME DO PROPRIETÁRIO"></div>
-      <div><label>CPF do Titular</label><input id="cpfTitular" placeholder="000.000.000-00"></div>
+      <div><label>CPF do Titular</label><input id="cpfTitular" placeholder="000.000.000-00" maxlength="14" inputmode="numeric"></div>
     </div>
   </div>
 
@@ -95,6 +99,13 @@
     <h2>3. ⚡ Gerar 12 meses automaticamente</h2>
     <div class="grid">
       <div><label>Ano</label><input id="anoAuto" type="number" value="2025"></div>
+      <div>
+        <label>Tipo</label>
+        <select id="tipoAuto1">
+          <option value="Realizado" selected>Realizado</option>
+          <option value="Previsto">Previsto</option>
+        </select>
+      </div>
       <div><label>Valor total (R$)</label><input id="valorAuto" type="text" inputmode="numeric" placeholder="1.000.000,00"></div>
       <div>
         <label>Modo de distribuição</label>
@@ -125,6 +136,13 @@
         </select>
       </div>
       <div><label>Ano inicial</label><input id="anoInicial" type="number" value="2025"></div>
+      <div>
+        <label>Tipo</label>
+        <select id="tipoAuto2">
+          <option value="Realizado" selected>Realizado</option>
+          <option value="Previsto">Previsto</option>
+        </select>
+      </div>
       <div><label>Valor total (R$)</label><input id="valorAuto2" type="text" inputmode="numeric" placeholder="1.353.887,00"></div>
       <div>
         <label>Modo de distribuição</label>
@@ -191,7 +209,7 @@
         <tr>
           <th>Mês</th><th>Ano</th><th>Realizado</th>
           <th style="text-align:right">Faturamento em R$</th>
-          <th style="width:140px">Ação</th>
+          <th style="width:120px">Ação</th>
         </tr>
       </thead>
       <tbody id="corpoTabela"></tbody>
@@ -251,20 +269,17 @@ const MESES = ['janeiro','fevereiro','março','abril','maio','junho',
                'julho','agosto','setembro','outubro','novembro','dezembro'];
 
 // ====== MÁSCARA DE MOEDA ======
-// Recebe o input do usuário (só números) e devolve "12.345,67"
 function aplicarMascaraMoeda(input) {
-  let v = input.value.replace(/\D/g, ''); // remove tudo que não é dígito
+  let v = input.value.replace(/\D/g, '');
   if (v === '') { input.value = ''; return; }
-  // mantém no máximo 2 dígitos decimais: os 2 últimos são centavos
   v = v.replace(/^0+/, '') || '0';
-  while (v.length < 3) v = '0' + v; // ex: "5" → "005" → 0,05
+  while (v.length < 3) v = '0' + v;
   const inteiros = v.slice(0, -2);
   const centavos = v.slice(-2);
   const inteirosFmt = parseInt(inteiros, 10).toLocaleString('pt-BR');
   input.value = inteirosFmt + ',' + centavos;
 }
 
-// Converte "12.345,67" → 12345.67
 function parseMoeda(str) {
   if (typeof str === 'number') return str;
   if (!str) return NaN;
@@ -272,11 +287,24 @@ function parseMoeda(str) {
   return parseFloat(limpo);
 }
 
-// Aplica máscara em tempo real nos campos de valor
+// ====== MÁSCARA DE CPF ======
+function aplicarMascaraCPF(input) {
+  let v = input.value.replace(/\D/g, '').slice(0, 11);
+  if (v.length === 0) { input.value = ''; return; }
+  let fmt = v;
+  if (v.length >= 4)  fmt = v.slice(0,3) + '.' + v.slice(3);
+  if (v.length >= 7)  fmt = v.slice(0,3) + '.' + v.slice(3,6) + '.' + v.slice(6);
+  if (v.length >= 10) fmt = v.slice(0,3) + '.' + v.slice(3,6) + '.' + v.slice(6,9) + '-' + v.slice(9);
+  input.value = fmt;
+}
+
 ['valor','valorAuto','valorAuto2'].forEach(id => {
   const el = document.getElementById(id);
   el.addEventListener('input', () => aplicarMascaraMoeda(el));
 });
+
+const cpfTitularEl = document.getElementById('cpfTitular');
+cpfTitularEl.addEventListener('input', () => aplicarMascaraCPF(cpfTitularEl));
 
 // ====== LIMPAR DADOS DA EMPRESA ======
 function limparEmpresa() {
@@ -313,10 +341,8 @@ function removerMes(i) {
 function editarMes(i) {
   linhaEditando = i;
   render();
-  // Aplica máscara no input de edição que acabou de ser criado
   const inp = document.getElementById('editValor_' + i);
   if (inp) {
-    // já vem no formato "12345.67" → transforma em "12.345,67"
     inp.value = Number(dados[i].valor).toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 });
     inp.addEventListener('input', () => aplicarMascaraMoeda(inp));
   }
@@ -350,6 +376,7 @@ function salvarEdicao(i) {
 // ====== GERAR 12 MESES AUTOMÁTICO ======
 function gerar12Meses() {
   const ano   = parseInt(document.getElementById('anoAuto').value);
+  const tipo  = document.getElementById('tipoAuto1').value;
   const total = parseMoeda(document.getElementById('valorAuto').value);
   const modo  = document.getElementById('modoAuto').value;
 
@@ -357,7 +384,7 @@ function gerar12Meses() {
     alert('Preencha o ano e o valor total!'); return;
   }
 
-  if (!confirm(`Isso vai substituir TODOS os meses por 12 novos meses de ${ano}.\nContinuar?`)) return;
+  if (!confirm(`Isso vai substituir TODOS os meses por 12 novos meses de ${ano}.\nTipo: ${tipo}\nContinuar?`)) return;
 
   dados = [];
   let valores = [];
@@ -384,17 +411,18 @@ function gerar12Meses() {
   }
 
   MESES.forEach((m, i) => {
-    dados.push({ mes: m, ano: ano, tipo: 'Realizado', valor: valores[i] });
+    dados.push({ mes: m, ano: ano, tipo: tipo, valor: valores[i] });
   });
 
   salvar(); render();
-  alert('✅ 12 meses gerados!');
+  alert(`✅ 12 meses gerados (${tipo})!`);
 }
 
-// ====== GERAR 12 MESES A PARTIR DE UM MÊS INICIAL (VIRADA DE ANO) ======
+// ====== GERAR 12 MESES A PARTIR DE UM MÊS INICIAL ======
 function gerar12MesesComInicio() {
   const mesInicial = document.getElementById('mesInicial').value;
   const anoInicial = parseInt(document.getElementById('anoInicial').value);
+  const tipo       = document.getElementById('tipoAuto2').value;
   const total      = parseMoeda(document.getElementById('valorAuto2').value);
   const modo       = document.getElementById('modoAuto2').value;
 
@@ -402,7 +430,6 @@ function gerar12MesesComInicio() {
     alert('Preencha o ano inicial e o valor total!'); return;
   }
 
-  // Mapa fixo do exemplo personalizado (out/2025 → set/2026)
   const VALORES_EXEMPLO = [
     19520, 21800, 32700, 56600, 64500, 85000,
     98425, 99232, 102360, 232400, 243350, 298000
@@ -415,15 +442,13 @@ function gerar12MesesComInicio() {
     )) return;
   }
 
-  if (!confirm(`Isso vai substituir TODOS os meses por 12 novos meses começando em ${mesInicial}/${anoInicial}.\nContinuar?`)) return;
+  if (!confirm(`Isso vai substituir TODOS os meses por 12 novos meses começando em ${mesInicial}/${anoInicial}.\nTipo: ${tipo}\nContinuar?`)) return;
 
   dados = [];
 
-  // Descobre o índice do mês inicial no array MESES
   const idxInicial = MESES.indexOf(mesInicial);
   if (idxInicial < 0) { alert('Mês inicial inválido!'); return; }
 
-  // Monta os 12 pares mês/ano com virada automática
   const sequencia = [];
   for (let i = 0; i < 12; i++) {
     const posAbs  = idxInicial + i;
@@ -432,10 +457,8 @@ function gerar12MesesComInicio() {
     sequencia.push({ mes: MESES[mesIdx], ano: anoInicial + anoAdd });
   }
 
-  // Calcula os valores conforme o modo
   let valores = [];
   if (modo === 'personalizado') {
-    // Ajusta último valor se o total informado for diferente, para bater exato
     valores = VALORES_EXEMPLO.slice();
     const somaEx = valores.reduce((a,b) => a+b, 0);
     const diff   = total - somaEx;
@@ -463,10 +486,9 @@ function gerar12MesesComInicio() {
   }
 
   sequencia.forEach((s, i) => {
-    dados.push({ mes: s.mes, ano: s.ano, tipo: 'Realizado', valor: valores[i] });
+    dados.push({ mes: s.mes, ano: s.ano, tipo: tipo, valor: valores[i] });
   });
 
-  // Sugere preencher o período automaticamente
   const periodoEl = document.getElementById('periodo');
   if (!periodoEl.value) {
     periodoEl.value = `${sequencia[0].ano}/${sequencia[11].ano}`;
@@ -474,7 +496,7 @@ function gerar12MesesComInicio() {
   }
 
   salvar(); render();
-  alert('✅ 12 meses gerados com virada de ano!');
+  alert(`✅ 12 meses gerados com virada de ano (${tipo})!`);
 }
 
 // ====== RENDER ======
@@ -505,7 +527,7 @@ function render() {
 
       return `<tr class="linha-editando">
         <td>
-          <select id="editMes_${i}" style="padding:4px;font-size:13px">
+          <select id="editMes_${i}" style="padding:2px 4px;font-size:11px;height:24px">
             ${opcoesMes}
           </select>
         </td>
@@ -513,7 +535,7 @@ function render() {
           <input id="editAno_${i}" class="input-ano" type="number" value="${d.ano}">
         </td>
         <td>
-          <select id="editTipo_${i}" style="padding:4px;font-size:13px">
+          <select id="editTipo_${i}" style="padding:2px 4px;font-size:11px;height:24px">
             <option value="Realizado" ${d.tipo==='Realizado'?'selected':''}>Realizado</option>
             <option value="Previsto"  ${d.tipo==='Previsto'?'selected':''}>Previsto</option>
           </select>
@@ -536,7 +558,7 @@ function render() {
       <td><span class="badge ${badge}">${d.tipo}</span></td>
       <td style="text-align:right">${formatarMoeda(d.valor)}</td>
       <td>
-        <button class="ghost small" onclick="editarMes(${i})">✏️ Editar</button>
+        <button class="ghost small" onclick="editarMes(${i})">✏️</button>
         <button class="danger small" onclick="removerMes(${i})">X</button>
       </td>
     </tr>`;
@@ -545,7 +567,6 @@ function render() {
   totalEl.textContent = formatarMoeda(total);
   totalGeralEl.textContent = formatarMoeda(total);
 
-  // Aplica máscara no input de edição ativo (se houver)
   if (linhaEditando >= 0) {
     const inp = document.getElementById('editValor_' + linhaEditando);
     if (inp) inp.addEventListener('input', () => aplicarMascaraMoeda(inp));
@@ -603,7 +624,6 @@ function importarRegistro(event) {
 
       if (!confirm('Restaurar este registro? Os dados atuais serão substituídos.')) return;
 
-      // Empresa
       if (pacote.empresa) {
         ['empresa','cnpj','periodo','titular','cpfTitular'].forEach(k => {
           if (pacote.empresa[k] !== undefined)
@@ -612,7 +632,6 @@ function importarRegistro(event) {
         salvarEmpresa();
       }
 
-      // Meses
       dados = pacote.meses;
       salvar(); render();
 
@@ -620,13 +639,13 @@ function importarRegistro(event) {
     } catch (err) {
       alert('Erro ao ler o arquivo: ' + err.message);
     } finally {
-      event.target.value = ''; // permite importar o mesmo arquivo novamente
+      event.target.value = '';
     }
   };
   reader.readAsText(file);
 }
 
-// ====== GERAR PDF ======
+// ====== GERAR PDF (INALTERADO) ======
 function gerarPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF('p', 'mm', 'a4');
