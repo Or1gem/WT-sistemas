@@ -68,7 +68,9 @@
 
   <!-- DADOS DA EMPRESA -->
   <div class="card">
-    <h2>1. Dados da Empresa</h2>
+    <h2>1. Dados da Empresa
+      <button class="ghost small" style="float:right; margin-top:-2px" onclick="limparEmpresa()">🧹 Limpar Campos</button>
+    </h2>
     <div class="grid">
       <div><label>Empresa</label><input id="empresa" placeholder="F. R. NOGUEIRA DA SILVA"></div>
       <div><label>CNPJ</label><input id="cnpj" placeholder="11.782.306/0001-63"></div>
@@ -107,6 +109,37 @@
       </div>
     </div>
     <div class="info">💡 Digite só os números: <b>100000000</b> vira <b>1.000.000,00</b> automaticamente.</div>
+  </div>
+
+  <!-- GERAR 12 MESES COM MÊS INICIAL (VIRADA DE ANO) -->
+  <div class="card">
+    <h2>3.1 🔄 Gerar 12 meses a partir de um mês inicial</h2>
+    <div class="grid">
+      <div>
+        <label>Mês inicial</label>
+        <select id="mesInicial">
+          <option>janeiro</option><option>fevereiro</option><option>março</option>
+          <option>abril</option><option>maio</option><option>junho</option>
+          <option>julho</option><option>agosto</option><option>setembro</option>
+          <option selected>outubro</option><option>novembro</option><option>dezembro</option>
+        </select>
+      </div>
+      <div><label>Ano inicial</label><input id="anoInicial" type="number" value="2025"></div>
+      <div><label>Valor total (R$)</label><input id="valorAuto2" type="text" inputmode="numeric" placeholder="1.353.887,00"></div>
+      <div>
+        <label>Modo de distribuição</label>
+        <select id="modoAuto2">
+          <option value="igual">Igual (mesmo valor em todos)</option>
+          <option value="igual_arredondado">Igual arredondado (ex: 50.000)</option>
+          <option value="crescente">Crescente (começa menor, termina maior)</option>
+          <option value="personalizado">Personalizado (valores fixos do exemplo)</option>
+        </select>
+      </div>
+      <div style="display:flex; align-items:flex-end;">
+        <button onclick="gerar12MesesComInicio()">🔄 Gerar 12 meses</button>
+      </div>
+    </div>
+    <div class="info">💡 Ex: mês inicial <b>outubro</b> e ano <b>2025</b> → gera out/2025 até set/2026 automaticamente.</div>
   </div>
 
   <!-- ADICIONAR MÊS MANUAL -->
@@ -240,10 +273,20 @@ function parseMoeda(str) {
 }
 
 // Aplica máscara em tempo real nos campos de valor
-['valor','valorAuto'].forEach(id => {
+['valor','valorAuto','valorAuto2'].forEach(id => {
   const el = document.getElementById(id);
   el.addEventListener('input', () => aplicarMascaraMoeda(el));
 });
+
+// ====== LIMPAR DADOS DA EMPRESA ======
+function limparEmpresa() {
+  if (!confirm('Limpar todos os dados da empresa (Empresa, CNPJ, Período, Titular e CPF)?')) return;
+  ['empresa','cnpj','periodo','titular','cpfTitular'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  localStorage.removeItem('fat_empresa');
+  render();
+}
 
 // ====== ADICIONAR / REMOVER ======
 function adicionarMes() {
@@ -346,6 +389,92 @@ function gerar12Meses() {
 
   salvar(); render();
   alert('✅ 12 meses gerados!');
+}
+
+// ====== GERAR 12 MESES A PARTIR DE UM MÊS INICIAL (VIRADA DE ANO) ======
+function gerar12MesesComInicio() {
+  const mesInicial = document.getElementById('mesInicial').value;
+  const anoInicial = parseInt(document.getElementById('anoInicial').value);
+  const total      = parseMoeda(document.getElementById('valorAuto2').value);
+  const modo       = document.getElementById('modoAuto2').value;
+
+  if (!anoInicial || isNaN(total) || total <= 0) {
+    alert('Preencha o ano inicial e o valor total!'); return;
+  }
+
+  // Mapa fixo do exemplo personalizado (out/2025 → set/2026)
+  const VALORES_EXEMPLO = [
+    19520, 21800, 32700, 56600, 64500, 85000,
+    98425, 99232, 102360, 232400, 243350, 298000
+  ];
+
+  if (modo === 'personalizado') {
+    const somaExemplo = VALORES_EXEMPLO.reduce((a,b) => a+b, 0);
+    if (Math.abs(somaExemplo - total) > 0.01 && !confirm(
+      `⚠ O valor total (${formatarMoeda(total)}) difere da soma do modelo (${formatarMoeda(somaExemplo)}).\n\nUsar os valores do modelo mesmo assim?`
+    )) return;
+  }
+
+  if (!confirm(`Isso vai substituir TODOS os meses por 12 novos meses começando em ${mesInicial}/${anoInicial}.\nContinuar?`)) return;
+
+  dados = [];
+
+  // Descobre o índice do mês inicial no array MESES
+  const idxInicial = MESES.indexOf(mesInicial);
+  if (idxInicial < 0) { alert('Mês inicial inválido!'); return; }
+
+  // Monta os 12 pares mês/ano com virada automática
+  const sequencia = [];
+  for (let i = 0; i < 12; i++) {
+    const posAbs  = idxInicial + i;
+    const mesIdx  = posAbs % 12;
+    const anoAdd  = Math.floor(posAbs / 12);
+    sequencia.push({ mes: MESES[mesIdx], ano: anoInicial + anoAdd });
+  }
+
+  // Calcula os valores conforme o modo
+  let valores = [];
+  if (modo === 'personalizado') {
+    // Ajusta último valor se o total informado for diferente, para bater exato
+    valores = VALORES_EXEMPLO.slice();
+    const somaEx = valores.reduce((a,b) => a+b, 0);
+    const diff   = total - somaEx;
+    if (Math.abs(diff) > 0.01) valores[11] += diff;
+  }
+  else if (modo === 'igual') {
+    const v = total / 12;
+    valores = Array(12).fill(v);
+  }
+  else if (modo === 'igual_arredondado') {
+    const v = Math.floor((total / 12) / 1000) * 1000;
+    valores = Array(12).fill(v);
+    const diff = total - (v * 12);
+    valores[11] += diff;
+  }
+  else if (modo === 'crescente') {
+    const somaPesos = (12 * 13) / 2;
+    for (let i = 1; i <= 12; i++) valores.push((total * i) / somaPesos);
+    let somaAte = 0;
+    for (let i = 0; i < 11; i++) {
+      valores[i] = Math.round(valores[i] / 100) * 100;
+      somaAte += valores[i];
+    }
+    valores[11] = total - somaAte;
+  }
+
+  sequencia.forEach((s, i) => {
+    dados.push({ mes: s.mes, ano: s.ano, tipo: 'Realizado', valor: valores[i] });
+  });
+
+  // Sugere preencher o período automaticamente
+  const periodoEl = document.getElementById('periodo');
+  if (!periodoEl.value) {
+    periodoEl.value = `${sequencia[0].ano}/${sequencia[11].ano}`;
+    salvarEmpresa();
+  }
+
+  salvar(); render();
+  alert('✅ 12 meses gerados com virada de ano!');
 }
 
 // ====== RENDER ======
