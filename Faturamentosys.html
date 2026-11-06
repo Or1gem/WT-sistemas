@@ -2,60 +2,290 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Faturamento</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
-  * { box-sizing: border-box; font-family: Arial, sans-serif; }
-  body { margin:0; background:#f0f2f5; color:#222; font-size:13px; }
-  header { background:#1e3a8a; color:#fff; padding:10px 18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
-  header h1 { margin:0; font-size:17px; }
-  .container { max-width:1100px; margin:14px auto; padding:0 12px; }
-  .card { background:#fff; border-radius:6px; padding:12px 14px; margin-bottom:12px; box-shadow:0 1px 4px rgba(0,0,0,.08); }
-  .card h2 { margin:0 0 8px 0; font-size:13px; color:#1e3a8a; border-bottom:1px solid #e5e7eb; padding-bottom:5px; display:flex; justify-content:space-between; align-items:center; }
-  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap:8px; }
-  label { display:block; font-size:10px; font-weight:bold; color:#555; margin-bottom:2px; text-transform:uppercase; letter-spacing:.3px; }
-  input, select { width:100%; padding:4px 6px; border:1px solid #cbd5e1; border-radius:4px; font-size:12px; height:28px; }
-  input:focus, select:focus { outline:none; border-color:#1e3a8a; box-shadow:0 0 0 2px rgba(30,58,138,.12); }
-  input[readonly] { background:#f1f5f9; color:#64748b; cursor:not-allowed; }
-  button { background:#1e3a8a; color:#fff; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold; height:28px; white-space:nowrap; transition:background .15s; }
-  button:hover { background:#152a63; }
-  button.danger { background:#dc2626; }
-  button.danger:hover { background:#a91d1d; }
-  button.success { background:#16a34a; }
-  button.success:hover { background:#0f7a37; }
-  button.ghost { background:#e2e8f0; color:#1e3a8a; }
-  button.ghost:hover { background:#cbd5e1; }
-  button.warn { background:#f59e0b; }
-  button.warn:hover { background:#d97706; }
-  button.small { padding:2px 6px; font-size:10px; height:22px; }
-  table { width:100%; border-collapse:collapse; margin-top:6px; }
-  th, td { padding:5px 6px; border-bottom:1px solid #e5e7eb; font-size:12px; text-align:left; vertical-align:middle; }
-  th { background:#f1f5f9; font-size:10px; text-transform:uppercase; color:#475569; letter-spacing:.3px; }
-  tfoot td { font-weight:bold; background:#f8fafc; }
-  .acoes { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
-  .empty { text-align:center; color:#94a3b8; padding:14px; font-style:italic; font-size:12px; }
-  .badge { display:inline-block; padding:1px 6px; border-radius:8px; font-size:10px; font-weight:bold; }
-  .badge.realizado { background:#dcfce7; color:#166534; }
-  .badge.previsto { background:#fef3c7; color:#92400e; }
-  .input-edit { padding:3px 5px; font-size:11px; width:110px; text-align:right; height:24px; }
-  .input-ano { padding:3px 5px; font-size:11px; width:65px; height:24px; }
-  .linha-editando { background:#fffbeb; }
-  .info { font-size:10px; color:#64748b; margin-top:4px; line-height:1.4; }
-  .preview-topo { padding:8px 0; border-bottom:1px solid #e5e7eb; margin-bottom:8px; }
-  .preview-topo .centro { text-align:center; }
-  .preview-topo .titulo { font-size:14px; font-weight:bold; color:#1e3a8a; }
-  .preview-topo .periodo { font-size:11px; color:#475569; margin-top:2px; }
-  .preview-topo .esquerda { text-align:left; margin-top:8px; }
-  .preview-topo .empresa { font-size:12px; font-weight:bold; }
-  .preview-topo .cnpj { font-size:10px; color:#475569; margin-top:1px; }
-  .resumo-total { margin-top:8px; text-align:right; font-size:13px; }
-  .resumo-total span { background:#e0e7ff; color:#1e3a8a; padding:5px 12px; border-radius:5px; font-weight:bold; font-size:13px; }
-  .registro-acoes { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
-  .botao-limpar-campos { float:right; margin-top:-2px; }
-  /* Ajuste fino para selects e inputs dentro de grids */
-  .grid > div { display:flex; flex-direction:column; }
-  .grid > div > button { margin-top:auto; }
+  * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, Arial, sans-serif; }
+  :root {
+    --azul: #1e3a8a;
+    --azul-claro: #3b5bdb;
+    --azul-escuro: #152a63;
+    --cinza-bg: #eef2f8;
+    --cinza-borda: #d9e2ec;
+    --texto: #1f2937;
+    --texto-suave: #64748b;
+    --verde: #16a34a;
+    --vermelho: #dc2626;
+    --amarelo: #f59e0b;
+  }
+  body {
+    margin: 0;
+    background: linear-gradient(180deg, #eef2f8 0%, #e3eaf5 100%);
+    color: var(--texto);
+    font-size: 13px;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, var(--azul) 0%, var(--azul-claro) 100%);
+    color: #fff;
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    box-shadow: 0 4px 14px rgba(30,58,138,.25);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: .3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* CONTAINER */
+  .container { max-width: 1150px; margin: 20px auto; padding: 0 16px; }
+
+  /* CARD */
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, .06), 0 1px 2px rgba(15,23,42,.04);
+    border: 1px solid rgba(217, 226, 236, .7);
+    transition: box-shadow .2s;
+  }
+  .card:hover { box-shadow: 0 4px 18px rgba(15, 23, 42, .09); }
+  .card h2 {
+    margin: 0 0 14px 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--azul);
+    border-bottom: 2px solid #e8eefb;
+    padding-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    letter-spacing: .3px;
+    text-transform: uppercase;
+  }
+
+  /* GRID */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+  }
+  .grid > div { display: flex; flex-direction: column; }
+  .grid > div > button { margin-top: auto; }
+
+  /* LABELS / INPUTS */
+  label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--texto-suave);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+  input, select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1.5px solid var(--cinza-borda);
+    border-radius: 8px;
+    font-size: 13px;
+    height: 36px;
+    background: #fbfcfe;
+    color: var(--texto);
+    transition: border-color .15s, box-shadow .15s, background .15s;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--azul-claro);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(59, 91, 219, .15);
+  }
+  input[readonly] {
+    background: #f1f5f9;
+    color: var(--texto-suave);
+    cursor: not-allowed;
+  }
+
+  /* BOTÕES */
+  button {
+    background: linear-gradient(135deg, var(--azul) 0%, var(--azul-claro) 100%);
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    height: 36px;
+    white-space: nowrap;
+    transition: transform .1s, box-shadow .15s, filter .15s;
+    box-shadow: 0 2px 6px rgba(30,58,138,.25);
+  }
+  button:hover { filter: brightness(1.08); box-shadow: 0 4px 10px rgba(30,58,138,.3); }
+  button:active { transform: translateY(1px); }
+
+  button.danger { background: linear-gradient(135deg, #dc2626, #ef4444); box-shadow: 0 2px 6px rgba(220,38,38,.3); }
+  button.danger:hover { filter: brightness(1.08); }
+  button.success { background: linear-gradient(135deg, #16a34a, #22c55e); box-shadow: 0 2px 6px rgba(22,163,74,.3); }
+  button.success:hover { filter: brightness(1.08); }
+  button.ghost {
+    background: #fff;
+    color: var(--azul);
+    border: 1.5px solid var(--cinza-borda);
+    box-shadow: none;
+  }
+  button.ghost:hover { background: #f0f4ff; border-color: var(--azul-claro); }
+  button.warn { background: linear-gradient(135deg, #f59e0b, #fbbf24); box-shadow: 0 2px 6px rgba(245,158,11,.3); }
+  button.warn:hover { filter: brightness(1.08); }
+  button.small { padding: 4px 8px; font-size: 11px; height: 28px; border-radius: 6px; }
+
+  /* AÇÕES */
+  .acoes { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+  /* TABELA */
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 10px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--cinza-borda);
+  }
+  th, td {
+    padding: 10px 12px;
+    font-size: 12.5px;
+    text-align: left;
+    vertical-align: middle;
+  }
+  th {
+    background: linear-gradient(135deg, #f1f5fb, #e8eefb);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    color: #334155;
+    letter-spacing: .5px;
+    font-weight: 700;
+    border-bottom: 2px solid var(--cinza-borda);
+  }
+  tbody tr { transition: background .12s; }
+  tbody tr:nth-child(even) { background: #fafbfe; }
+  tbody tr:hover { background: #f0f5ff; }
+  td { border-bottom: 1px solid #eef2f7; }
+  tbody tr:last-child td { border-bottom: none; }
+  tfoot td {
+    font-weight: 700;
+    background: linear-gradient(135deg, #eef3fc, #e3ecfa);
+    color: var(--azul);
+    font-size: 13px;
+    border-top: 2px solid var(--cinza-borda);
+  }
+
+  /* EMPTY */
+  .empty {
+    text-align: center;
+    color: #94a3b8;
+    padding: 22px;
+    font-style: italic;
+    font-size: 13px;
+  }
+
+  /* BADGES */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .3px;
+  }
+  .badge.realizado { background: #dcfce7; color: #166534; }
+  .badge.previsto  { background: #fef3c7; color: #92400e; }
+
+  /* INPUTS DE EDIÇÃO */
+  .input-edit { padding: 5px 8px; font-size: 12px; width: 120px; text-align: right; height: 28px; border-radius: 6px; }
+  .input-ano  { padding: 5px 8px; font-size: 12px; width: 75px; height: 28px; border-radius: 6px; }
+  .linha-editando { background: #fffbeb !important; }
+
+  /* INFO */
+  .info {
+    font-size: 11.5px;
+    color: var(--texto-suave);
+    margin-top: 8px;
+    line-height: 1.5;
+    background: #f8fafc;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border-left: 3px solid var(--azul-claro);
+  }
+
+  /* PREVIEW TOPO */
+  .preview-topo {
+    padding: 14px 16px;
+    border: 1px dashed var(--cinza-borda);
+    border-radius: 10px;
+    margin-bottom: 14px;
+    background: #f8fafc;
+  }
+  .preview-topo .centro { text-align: center; }
+  .preview-topo .titulo { font-size: 15px; font-weight: 700; color: var(--azul); }
+  .preview-topo .periodo { font-size: 12px; color: var(--texto-suave); margin-top: 3px; }
+  .preview-topo .esquerda { text-align: left; margin-top: 12px; }
+  .preview-topo .empresa { font-size: 13px; font-weight: 700; color: var(--texto); }
+  .preview-topo .cnpj { font-size: 11px; color: var(--texto-suave); margin-top: 2px; }
+
+  /* RESUMO */
+  .resumo-total {
+    margin-top: 16px;
+    text-align: right;
+    font-size: 13px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+  }
+  .resumo-total span {
+    background: linear-gradient(135deg, var(--azul) 0%, var(--azul-claro) 100%);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 15px;
+    box-shadow: 0 3px 10px rgba(30,58,138,.25);
+    letter-spacing: .3px;
+  }
+
+  /* REGISTRO */
+  .registro-acoes { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+  /* BOTÃO LIMPAR CAMPOS */
+  .botao-limpar-campos { float: right; margin-top: -3px; }
+
+  /* RESPONSIVO */
+  @media (max-width: 640px) {
+    header { padding: 12px 14px; }
+    header h1 { font-size: 15px; }
+    .container { margin: 12px auto; padding: 0 10px; }
+    .card { padding: 14px; }
+    th, td { padding: 8px 8px; font-size: 11.5px; }
+    .input-edit { width: 90px; }
+  }
 </style>
 </head>
 <body>
@@ -72,7 +302,7 @@
 
   <!-- DADOS DA EMPRESA -->
   <div class="card">
-    <h2>1. Dados da Empresa
+    <h2>Dados da Empresa
       <button class="ghost small botao-limpar-campos" onclick="limparEmpresa()">🧹 Limpar Campos</button>
     </h2>
     <div class="grid">
@@ -84,19 +314,14 @@
     </div>
   </div>
 
-  <!-- CONTADOR FIXO -->
-  <div class="card">
-    <h2>2. Contador</h2>
-    <div class="grid">
-      <div><label>Contador</label><input id="contador" value="Humberto Lima Gomes" readonly></div>
-      <div><label>CPF do Contador</label><input id="cpfContador" value="012.673.572-74" readonly></div>
-      <div><label>CRC</label><input id="crc" value="CRC-AP 002596/O-4" readonly></div>
-    </div>
-  </div>
+  <!-- DADOS DO CONTADOR (OCULTOS) -->
+  <input id="contador" value="Humberto Lima Gomes" type="hidden">
+  <input id="cpfContador" value="012.673.572-74" type="hidden">
+  <input id="crc" value="CRC-AP 002596/O-4" type="hidden">
 
   <!-- GERAR 12 MESES AUTOMÁTICO -->
   <div class="card">
-    <h2>3. ⚡ Gerar 12 meses automaticamente</h2>
+    <h2>⚡ Gerar 12 meses automaticamente</h2>
     <div class="grid">
       <div><label>Ano</label><input id="anoAuto" type="number" value="2025"></div>
       <div>
@@ -107,24 +332,16 @@
         </select>
       </div>
       <div><label>Valor total (R$)</label><input id="valorAuto" type="text" inputmode="numeric" placeholder="1.000.000,00"></div>
-      <div>
-        <label>Modo de distribuição</label>
-        <select id="modoAuto">
-          <option value="igual">Igual (mesmo valor em todos)</option>
-          <option value="igual_arredondado">Igual arredondado (ex: 50.000)</option>
-          <option value="crescente">Crescente (começa menor, termina maior)</option>
-        </select>
-      </div>
       <div style="display:flex; align-items:flex-end;">
         <button onclick="gerar12Meses()">⚡ Gerar 12 meses</button>
       </div>
     </div>
-    <div class="info">💡 Digite só os números: <b>100000000</b> vira <b>1.000.000,00</b> automaticamente.</div>
+    <div class="info">💡 Os valores são distribuídos em <b>crescente suave</b> (variação de ~35% do primeiro ao último mês).</div>
   </div>
 
-  <!-- GERAR 12 MESES COM MÊS INICIAL (VIRADA DE ANO) -->
+  <!-- GERAR 12 MESES COM MÊS INICIAL -->
   <div class="card">
-    <h2>3.1 🔄 Gerar 12 meses a partir de um mês inicial</h2>
+    <h2>🔄 Gerar 12 meses a partir de um mês inicial</h2>
     <div class="grid">
       <div>
         <label>Mês inicial</label>
@@ -144,25 +361,16 @@
         </select>
       </div>
       <div><label>Valor total (R$)</label><input id="valorAuto2" type="text" inputmode="numeric" placeholder="1.353.887,00"></div>
-      <div>
-        <label>Modo de distribuição</label>
-        <select id="modoAuto2">
-          <option value="igual">Igual (mesmo valor em todos)</option>
-          <option value="igual_arredondado">Igual arredondado (ex: 50.000)</option>
-          <option value="crescente">Crescente (começa menor, termina maior)</option>
-          <option value="personalizado">Personalizado (valores fixos do exemplo)</option>
-        </select>
-      </div>
       <div style="display:flex; align-items:flex-end;">
         <button onclick="gerar12MesesComInicio()">🔄 Gerar 12 meses</button>
       </div>
     </div>
-    <div class="info">💡 Ex: mês inicial <b>outubro</b> e ano <b>2025</b> → gera out/2025 até set/2026 automaticamente.</div>
+    <div class="info">💡 Ex: mês inicial <b>outubro</b> e ano <b>2025</b> → gera out/2025 até set/2026. Valores em <b>crescente suave</b>.</div>
   </div>
 
   <!-- ADICIONAR MÊS MANUAL -->
   <div class="card">
-    <h2>4. Adicionar mês individual</h2>
+    <h2>Adicionar mês individual</h2>
     <div class="grid">
       <div>
         <label>Mês</label>
@@ -190,9 +398,8 @@
 
   <!-- TABELA -->
   <div class="card">
-    <h2>5. Faturamento Detalhado (12 meses)</h2>
+    <h2>Faturamento Detalhado (12 meses)</h2>
 
-    <!-- Preview do cabeçalho que sai no PDF -->
     <div class="preview-topo">
       <div class="centro">
         <div class="titulo">Faturamento Realizado</div>
@@ -227,9 +434,9 @@
     </div>
   </div>
 
-  <!-- REGISTRO (BACKUP) -->
+  <!-- REGISTRO -->
   <div class="card">
-    <h2>6. 📦 Registro (salvar / restaurar)</h2>
+    <h2>Registro (salvar / restaurar)</h2>
     <div class="registro-acoes">
       <button class="warn" onclick="exportarRegistro()">💾 Salvar Registro</button>
       <button class="ghost" onclick="document.getElementById('arquivoRegistro').click()">📂 Restaurar Registro</button>
@@ -306,6 +513,33 @@ function aplicarMascaraCPF(input) {
 const cpfTitularEl = document.getElementById('cpfTitular');
 cpfTitularEl.addEventListener('input', () => aplicarMascaraCPF(cpfTitularEl));
 
+// ====== DISTRIBUIÇÃO CRESCENTE SUAVE ======
+// Gera 12 valores crescentes com pouca variação (~35% do primeiro ao último)
+// Ajusta para bater exatamente o total informado.
+function distribuirCrescenteSuave(total) {
+  const fatorInicial = 0.85;  // primeiro mês = 85% da média
+  const fatorFinal   = 1.15;  // último mês  = 115% da média
+  const media = total / 12;
+  const passos = 11;
+  let valores = [];
+  let soma = 0;
+  for (let i = 0; i < 12; i++) {
+    const fator = fatorInicial + ((fatorFinal - fatorInicial) * i) / passos;
+    valores.push(media * fator);
+    soma += valores[i];
+  }
+  // Ajuste fino para bater o total
+  const ajuste = total - soma;
+  for (let i = 0; i < 12; i++) {
+    valores[i] += ajuste / 12;
+    valores[i] = Math.round(valores[i] / 10) * 10; // arredonda para dezena
+  }
+  // Corrige diferença do arredondamento no último
+  const somaFinal = valores.reduce((a,b) => a+b, 0);
+  valores[11] += total - somaFinal;
+  return valores;
+}
+
 // ====== LIMPAR DADOS DA EMPRESA ======
 function limparEmpresa() {
   if (!confirm('Limpar todos os dados da empresa (Empresa, CNPJ, Período, Titular e CPF)?')) return;
@@ -378,7 +612,6 @@ function gerar12Meses() {
   const ano   = parseInt(document.getElementById('anoAuto').value);
   const tipo  = document.getElementById('tipoAuto1').value;
   const total = parseMoeda(document.getElementById('valorAuto').value);
-  const modo  = document.getElementById('modoAuto').value;
 
   if (!ano || isNaN(total) || total <= 0) {
     alert('Preencha o ano e o valor total!'); return;
@@ -387,28 +620,7 @@ function gerar12Meses() {
   if (!confirm(`Isso vai substituir TODOS os meses por 12 novos meses de ${ano}.\nTipo: ${tipo}\nContinuar?`)) return;
 
   dados = [];
-  let valores = [];
-
-  if (modo === 'igual') {
-    const v = total / 12;
-    valores = Array(12).fill(v);
-  }
-  else if (modo === 'igual_arredondado') {
-    const v = Math.floor((total / 12) / 1000) * 1000;
-    valores = Array(12).fill(v);
-    const diff = total - (v * 12);
-    valores[11] += diff;
-  }
-  else if (modo === 'crescente') {
-    const somaPesos = (12 * 13) / 2;
-    for (let i = 1; i <= 12; i++) valores.push((total * i) / somaPesos);
-    let somaAte = 0;
-    for (let i = 0; i < 11; i++) {
-      valores[i] = Math.round(valores[i] / 100) * 100;
-      somaAte += valores[i];
-    }
-    valores[11] = total - somaAte;
-  }
+  const valores = distribuirCrescenteSuave(total);
 
   MESES.forEach((m, i) => {
     dados.push({ mes: m, ano: ano, tipo: tipo, valor: valores[i] });
@@ -424,22 +636,9 @@ function gerar12MesesComInicio() {
   const anoInicial = parseInt(document.getElementById('anoInicial').value);
   const tipo       = document.getElementById('tipoAuto2').value;
   const total      = parseMoeda(document.getElementById('valorAuto2').value);
-  const modo       = document.getElementById('modoAuto2').value;
 
   if (!anoInicial || isNaN(total) || total <= 0) {
     alert('Preencha o ano inicial e o valor total!'); return;
-  }
-
-  const VALORES_EXEMPLO = [
-    19520, 21800, 32700, 56600, 64500, 85000,
-    98425, 99232, 102360, 232400, 243350, 298000
-  ];
-
-  if (modo === 'personalizado') {
-    const somaExemplo = VALORES_EXEMPLO.reduce((a,b) => a+b, 0);
-    if (Math.abs(somaExemplo - total) > 0.01 && !confirm(
-      `⚠ O valor total (${formatarMoeda(total)}) difere da soma do modelo (${formatarMoeda(somaExemplo)}).\n\nUsar os valores do modelo mesmo assim?`
-    )) return;
   }
 
   if (!confirm(`Isso vai substituir TODOS os meses por 12 novos meses começando em ${mesInicial}/${anoInicial}.\nTipo: ${tipo}\nContinuar?`)) return;
@@ -457,33 +656,7 @@ function gerar12MesesComInicio() {
     sequencia.push({ mes: MESES[mesIdx], ano: anoInicial + anoAdd });
   }
 
-  let valores = [];
-  if (modo === 'personalizado') {
-    valores = VALORES_EXEMPLO.slice();
-    const somaEx = valores.reduce((a,b) => a+b, 0);
-    const diff   = total - somaEx;
-    if (Math.abs(diff) > 0.01) valores[11] += diff;
-  }
-  else if (modo === 'igual') {
-    const v = total / 12;
-    valores = Array(12).fill(v);
-  }
-  else if (modo === 'igual_arredondado') {
-    const v = Math.floor((total / 12) / 1000) * 1000;
-    valores = Array(12).fill(v);
-    const diff = total - (v * 12);
-    valores[11] += diff;
-  }
-  else if (modo === 'crescente') {
-    const somaPesos = (12 * 13) / 2;
-    for (let i = 1; i <= 12; i++) valores.push((total * i) / somaPesos);
-    let somaAte = 0;
-    for (let i = 0; i < 11; i++) {
-      valores[i] = Math.round(valores[i] / 100) * 100;
-      somaAte += valores[i];
-    }
-    valores[11] = total - somaAte;
-  }
+  const valores = distribuirCrescenteSuave(total);
 
   sequencia.forEach((s, i) => {
     dados.push({ mes: s.mes, ano: s.ano, tipo: tipo, valor: valores[i] });
@@ -527,7 +700,7 @@ function render() {
 
       return `<tr class="linha-editando">
         <td>
-          <select id="editMes_${i}" style="padding:2px 4px;font-size:11px;height:24px">
+          <select id="editMes_${i}" style="padding:4px 6px;font-size:12px;height:28px">
             ${opcoesMes}
           </select>
         </td>
@@ -535,7 +708,7 @@ function render() {
           <input id="editAno_${i}" class="input-ano" type="number" value="${d.ano}">
         </td>
         <td>
-          <select id="editTipo_${i}" style="padding:2px 4px;font-size:11px;height:24px">
+          <select id="editTipo_${i}" style="padding:4px 6px;font-size:12px;height:28px">
             <option value="Realizado" ${d.tipo==='Realizado'?'selected':''}>Realizado</option>
             <option value="Previsto"  ${d.tipo==='Previsto'?'selected':''}>Previsto</option>
           </select>
@@ -556,7 +729,7 @@ function render() {
       <td style="text-transform:capitalize">${d.mes}</td>
       <td>${d.ano}</td>
       <td><span class="badge ${badge}">${d.tipo}</span></td>
-      <td style="text-align:right">${formatarMoeda(d.valor)}</td>
+      <td style="text-align:right;font-weight:600">${formatarMoeda(d.valor)}</td>
       <td>
         <button class="ghost small" onclick="editarMes(${i})">✏️</button>
         <button class="danger small" onclick="removerMes(${i})">X</button>
@@ -645,7 +818,7 @@ function importarRegistro(event) {
   reader.readAsText(file);
 }
 
-// ====== GERAR PDF (INALTERADO) ======
+// ====== GERAR PDF ======
 function gerarPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF('p', 'mm', 'a4');
